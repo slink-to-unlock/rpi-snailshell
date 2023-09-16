@@ -22,3 +22,4 @@ sleep(2) # 2초 대기
 camera.capture_sequence([file_name_pattern % i for i in range(args.time * args.frame)]) # 촬영 시작
 
 camera.stop_preview() # 프리뷰 끝내기
+camera.close() # 카메라 객체 닫기
