@@ -3,3 +3,4 @@ numpy
 pylint
 pyyaml
 yapf
+torchvision
