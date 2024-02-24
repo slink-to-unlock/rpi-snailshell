@@ -57,9 +57,9 @@ for param in model.features.parameters():
     param.requires_grad = False
 
 model.eval()
-val_url = '/Users/sukcess/Documents/WorkSpace/sink/ßäëßàÑßå¿ßäïßà«ßäëßàÑßå»ßäÇßàÑßäîßà╡_ßäçßà⌐ßäîßà⌐ßäîßàíx_initial_0_clip_2_000046.jpg'
-def pridictImage (val_url):
-    val_image = Image.open(val_url)
+image_path = 'examples/test_image.jpg'
+def pridictImage (image_path):
+    val_image = Image.open(image_path)
     val_image = transform_MobileNet_V2(val_image)
     val_image = val_image.unsqueeze(0)
 
@@ -69,4 +69,4 @@ def pridictImage (val_url):
 
     print(f"Pridict label: {val_predicted_class_idx}")
 
-pridictImage(val_url)
+pridictImage(image_path)
