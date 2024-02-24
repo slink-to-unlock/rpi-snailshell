@@ -1,2 +1,5 @@
 pytorch
 numpy
+pylint
+pyyaml
+yapf
