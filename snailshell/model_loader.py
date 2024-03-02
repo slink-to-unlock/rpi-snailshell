@@ -23,12 +23,6 @@ def model_loader(model_name: str, weight_path: str):
 
         model.load_state_dict(new_state_dict, strict=False)
 
-        in_features = model.classifier[1].in_features
-        model.classifier[1] = torch.nn.Linear(in_features, 2)
-
-        for param in model.features.parameters():
-            param.requires_grad = False
-
         model.eval()
 
         return model
