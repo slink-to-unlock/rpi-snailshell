@@ -22,9 +22,9 @@ def run(use_pi_camera,
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-    print(fps)
-    print(frame_height)
-    print(frame_width)
+    print(f'FPS:{fps}')
+    print(f'FRAME_Height:{frame_height}')
+    print(f'FRAME_Width:{frame_width}')
     frame_interval = int(fps/targetfps)
     frame_count = 0
     predicted_class = -1
