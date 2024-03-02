@@ -1,6 +1,7 @@
 # 내장
 import unittest
 import argparse
+from pathlib import Path
 from unittest.mock import patch
 
 # 프로젝트
@@ -14,14 +15,15 @@ class TestArgumentParsing(unittest.TestCase):
         # 라즈베리파이 카메라 사용 정상 사용 케이스
         mock_args.return_value = argparse.Namespace(
             use_pi_camera=True,
-            video_path='',
-            model='model1',
+            video_path=None,
+            weight_path=Path('snailshell/main.py'),
+            model_name='model1',
             visualize=True,
-            fps=None,
+            target_fps=None,
         )
         args = parse()
         self.assertTrue(args.use_pi_camera)
-        self.assertEqual(args.model, 'model1')
+        self.assertEqual(args.model_name, 'model1')
         self.assertTrue(args.visualize)
 
     @patch('argparse.ArgumentParser.parse_args')
@@ -29,15 +31,16 @@ class TestArgumentParsing(unittest.TestCase):
         # 비디오 경로 사용 정상 사용 케이스
         mock_args.return_value = argparse.Namespace(
             use_pi_camera=False,
-            video_path='/path/to/video.mp4',
-            model='model2',
+            video_path=Path('snailshell/main.py'),
+            weight_path=Path('snailshell/main.py'),
+            model_name='model2',
             visualize=False,
-            fps=None,
+            target_fps=None,
         )
         args = parse()
         self.assertFalse(args.use_pi_camera)
-        self.assertEqual(args.video_path, '/path/to/video.mp4')
-        self.assertEqual(args.model, 'model2')
+        self.assertEqual(args.video_path, Path('snailshell/main.py'))
+        self.assertEqual(args.model_name, 'model2')
         self.assertFalse(args.visualize)
 
     @patch('argparse.ArgumentParser.parse_args')
@@ -45,25 +48,41 @@ class TestArgumentParsing(unittest.TestCase):
         # 카메라를 사용하지 않는 경우 비디오 경로가 없을 때 ValueError가 발생하는가
         mock_args.return_value = argparse.Namespace(
             use_pi_camera=False,
-            video_path='',
-            model='model3',
+            video_path=None,
+            weight_path=Path('snailshell/main.py'),
+            model_name='model3',
             visualize=True,
-            fps=None,
+            target_fps=None,
         )
         with self.assertRaises(ValueError):
             parse()
 
     @patch('argparse.ArgumentParser.parse_args')
     def test_exception_with_fps_less_than_one(self, mock_args):
-        # fps 가 1 이하일 경우 ValueError가 발생하는가
+        # target_fps 가 1 이하일 경우 ValueError가 발생하는가
         mock_args.return_value = argparse.Namespace(
             use_pi_camera=False,
-            video_path='/path/to/video.mp4',
-            model='model_name',
+            video_path=Path('snailshell/main.py'),
+            weight_path=Path('snailshell/main.py'),
+            model_name='model_name',
             visualize=True,
-            fps=0,
+            target_fps=0,
         )
         with self.assertRaises(ValueError):
+            parse()
+
+    @patch('argparse.ArgumentParser.parse_args')
+    def test_exception_with_nonexistent_weight_path(self, mock_args):
+        # 가중치 파일 경로가 잘못된 경로일 때 FileNotFoundError 가 발생하는가
+        mock_args.return_value = argparse.Namespace(
+            use_pi_camera=False,
+            video_path=Path('snailshell/main.py'),
+            weight_path=Path('nonexistent/path/to/weights.pth'),
+            model_name='model_name',
+            visualize=True,
+            target_fps=30,
+        )
+        with self.assertRaises(FileNotFoundError):
             parse()
 
 
