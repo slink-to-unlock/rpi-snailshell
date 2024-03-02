@@ -8,14 +8,16 @@ class CustomMobileNetV2(nn.Module):
     def __init__(self, num_classes=2):
         super(CustomMobileNetV2, self).__init__()
 
-        model_pretrained = models.mobilenet_v2(pretrained=True)
+        model_pretrained = models.mobilenet_v2()
 
         for param in model_pretrained.parameters():
             param.requires_grad = False
 
-        model_pretrained.classifier[0].requires_grad = True
-        model_pretrained.classifier[1] = nn.Linear(in_features=1280,
-                                                   out_features=num_classes)
+        # model_pretrained.classifier[0].requires_grad = False
+        # model_pretrained.classifier[1] = nn.Linear(in_features=1280,
+        #                                            out_features=num_classes)
+        model_pretrained.classifier = nn.Linear(in_features=1280,
+                                                out_features=num_classes)
         self.features = model_pretrained.features
         self.classifier = model_pretrained.classifier
 

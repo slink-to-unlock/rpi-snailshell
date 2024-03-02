@@ -7,6 +7,7 @@ from torchvision import transforms
 import torchvision.transforms as transforms
 from transformers import ResNetForImageClassification, AutoImageProcessor
 from model_class import CustomMobileNetV2
+from torchsummary import summary
 
 
 def model_loader(model_name: str, weight_path: str):
@@ -17,8 +18,8 @@ def model_loader(model_name: str, weight_path: str):
         new_state_dict = {}
 
         for key, value in custom_weights.items():
-            if key.startswith('classifier'):
-                continue
+            # if key.startswith('classifier'):
+            #     continue
             new_state_dict[key] = value
 
         model.load_state_dict(new_state_dict, strict=False)
@@ -36,8 +37,8 @@ def model_loader(model_name: str, weight_path: str):
 def do_inferance(image: np.array, model, model_name: str) -> int:
     if model_name == "mobilenet":
         transform_MobileNet_V2 = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize((224, 224)),
+            # transforms.ToPILImage(),
+            # transforms.Resize((224, 224)),
             transforms.ToTensor()
         ])
 
@@ -67,3 +68,13 @@ def do_inferance(image: np.array, model, model_name: str) -> int:
 
         #예측 label 반환
         return predicted_class
+
+
+model_name = "mobilenet"
+weight_path = "examples/mobilenet_v2-7ebf99e0.pth"
+image_path = "examples/test_image.jpg"
+model = model_loader(model_name, weight_path)
+summary(model.eval(), (3, 224, 224))
+img = Image.open(image_path)
+img_array = np.array(img)
+print(do_inferance(img_array, model, model_name))
