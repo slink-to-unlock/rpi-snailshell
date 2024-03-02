@@ -1,6 +1,7 @@
-pytorch
+torch
 numpy
 pylint
 pyyaml
 yapf
 torchvision
+opencv-python
