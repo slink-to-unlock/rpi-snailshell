@@ -6,35 +6,12 @@ from torchvision import models
 from torchvision import transforms
 import torchvision.transforms as transforms
 from transformers import ResNetForImageClassification, AutoImageProcessor
-
-
-#MobileNet 모델 class 선언
-class CustomMobileNetV2(nn.Module):
-
-    def __init__(self, num_classes=2):
-        super(CustomMobileNetV2, self).__init__()
-
-        model_pretrained = models.mobilenet_v2(pretrained=True)
-
-        for param in model_pretrained.parameters():
-            param.requires_grad = False
-
-        model_pretrained.classifier[0].requires_grad = True
-        model_pretrained.classifier[1] = nn.Linear(in_features=1280,
-                                                   out_features=num_classes)
-        self.features = model_pretrained.features
-        self.classifier = model_pretrained.classifier
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.mean([2, 3])
-        x = self.classifier(x)
-        return x
+from model_class import CustomMobileNetV2
 
 
 def model_loader(model_name: str, weight_path: str):
 
-    if model_name == "mobilenet":
+    if model_name == "mobilenet":  #Mobilenet 모델일 경우
         model = CustomMobileNetV2(num_classes=2)
         custom_weights = torch.load(weight_path)
         new_state_dict = {}
@@ -56,9 +33,8 @@ def model_loader(model_name: str, weight_path: str):
 
         return model
 
-    elif model_name == "resnet":
-        model_name = weight_path
-        model = ResNetForImageClassification.from_pretrained(model_name)
+    elif model_name == "resnet":  #resnet-50 모델일 경우
+        model = ResNetForImageClassification.from_pretrained(weight_path)
 
         return model
 
@@ -77,18 +53,23 @@ def do_inferance(image: np.array, model, model_name: str) -> int:
         # 모델에 입력하기 위해 차원 추가
         transformed_image = transformed_image.unsqueeze(0)
 
-        predicted_class = model(transformed_image)
+        outputs = model(transformed_image)
 
         # 예측된 클래스 인덱스 찾기
-        predicted_class_idx = torch.argmax(predicted_class, dim=1).item()
+        predicted_class = torch.argmax(outputs, dim=1).item()
 
-        return predicted_class_idx
+        return predicted_class
 
     elif model_name == "resnet":
+        #processor 선언
         pretrained_model_name = "microsoft/resnet-50"
         processor = AutoImageProcessor.from_pretrained(pretrained_model_name)
+
+        #images: np.array의 형태. 입력값 예측.
         inputs = processor(images=image, return_tensors="pt")
         outputs = model(**inputs)
         logits = outputs.logits
         predicted_class = torch.argmax(logits, dim=1).item()
+
+        #예측 label 반환
         return predicted_class
