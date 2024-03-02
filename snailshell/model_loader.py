@@ -6,7 +6,7 @@ from torchvision import models
 from torchvision import transforms
 import torchvision.transforms as transforms
 from transformers import ResNetForImageClassification, AutoImageProcessor
-from model_class import CustomMobileNetV2
+from snailshell.model_class import CustomMobileNetV2
 from torchsummary import summary
 
 

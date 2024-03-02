@@ -1,5 +1,5 @@
 import cv2
-from model_loader import model_loader, do_inference
+from snailshell.model_loader import model_loader, do_inference
 
 
 def run(
