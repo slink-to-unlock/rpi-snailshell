@@ -1,15 +1,19 @@
 import cv2
-from model_loader import model_loader, do_inference
+from snailshell.model_loader import MobileNetAdapter, ResNetAdapter
 
 def run(use_pi_camera,
         video_path,
-        modeltype,
+        model_name,
+        weight_path,
         visualize,
-        targetfps,):
+        target_fps,):
 
 
     # 모델 로드
-    model = model_loader()
+    if model_name == "resnet":
+        model = ResNetAdapter(weight_path)
+    elif model_name == "mobilenet":
+        model = MobileNetAdapter(weight_path)
 
     # 비디오 캡처
     if use_pi_camera:
@@ -25,7 +29,7 @@ def run(use_pi_camera,
     print(f'FPS:{fps}')
     print(f'FRAME_Height:{frame_height}')
     print(f'FRAME_Width:{frame_width}')
-    frame_interval = int(fps/targetfps)
+    frame_interval = int(fps/target_fps)
     frame_count = 0
     predicted_class = -1
     while cap.isOpened():
@@ -40,7 +44,7 @@ def run(use_pi_camera,
             frame_count = 0
 
             # 프레임을 모델에 전달하여 클래스 예측
-            predicted_class = do_inference(frame, model, modeltype)
+            predicted_class = model.predict(frame)
 
 
         if visualize:
