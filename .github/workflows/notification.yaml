@@ -15,11 +15,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Notification to Discord
-        uses: rjstone/discord-webhook-notify@v1.0.4
+        uses: rjstone/discord-webhook-notify@v1.0.3
         with:
-          url: ${{ secrets.DISCORD_WEBHOOK }}
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
           username: GitHub Actions
-          content: |
+          text: |
             **New GitHub Event**
             Event: ${{ github.event_name }}
             Repository: ${{ github.repository }}
