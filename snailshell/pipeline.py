@@ -1,20 +1,22 @@
+# 서드파티
 import cv2
-from snailshell.model_loader import model_loader, do_inference
+
+# 프로젝트
+from snailshell.model_loader import MobileNetAdapter, ResNetAdapter
 
 
-def run(
-    use_pi_camera,
-    video_path,
-    modeltype,
-    visualize,
-    targetfps,
-):
+def run(use_pi_camera,
+        video_path,
+        model_name,
+        weight_path,
+        visualize,
+        target_fps,):
 
     # 모델 로드
-    # mobilenet or resnet: 각각에 맞는 weight_path를 넣어줄것.
-    model_name = "resnet"
-    weight_path = "examples/microsoft_resnet-50_240217_163847"
-    model = model_loader(model_name, weight_path)
+    if model_name == "resnet":
+        model = ResNetAdapter(weight_path)
+    elif model_name == "mobilenet":
+        model = MobileNetAdapter(weight_path)
 
     # 비디오 캡처
     if use_pi_camera:
@@ -30,7 +32,7 @@ def run(
     print(f'FPS:{fps}')
     print(f'FRAME_Height:{frame_height}')
     print(f'FRAME_Width:{frame_width}')
-    frame_interval = int(fps / targetfps)
+    frame_interval = int(fps/target_fps)
     frame_count = 0
     predicted_class = -1
     while cap.isOpened():
@@ -44,7 +46,7 @@ def run(
             frame_count = 0
 
             # 프레임을 모델에 전달하여 클래스 예측
-            predicted_class = do_inference(frame, model, modeltype)
+            predicted_class = model.predict(frame)
 
         if visualize:
             # 예측 클래스를 프레임에 표시

@@ -1,6 +1,7 @@
-pytorch
+torch
 numpy
 torchvision
+opencv-python
 
 # 생산성
 pylint
