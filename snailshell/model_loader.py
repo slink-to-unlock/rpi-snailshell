@@ -1,19 +1,33 @@
 import torch
-import torch.nn as nn
 import numpy as np
-from PIL import Image
-from torchvision import models
 from torchvision import transforms
 import torchvision.transforms as transforms
 from transformers import ResNetForImageClassification, AutoImageProcessor
 from snailshell.model_class import CustomMobileNetV2
-from torchsummary import summary
+from abc import ABC, abstractmethod
 
 
-def model_loader(model_name: str, weight_path: str):
+# 부모 ABC
+class ModelAdapter(ABC):
 
-    if model_name == "mobilenet":  #Mobilenet 모델일 경우
-        model = CustomMobileNetV2(num_classes=2)
+    def __init__(self, weight_path):
+        self.weight_path = weight_path
+
+    @abstractmethod
+    def preprocess(self, image: np.array):
+        pass
+
+    @abstractmethod
+    def predict(self, image: np.array) -> int:
+        pass
+
+
+# mobilenet class
+class MobileNetAdapter(ModelAdapter):
+    # class를 선언할 때 weight_path를 입력받아 모델과 전처리기 한번만 선언 후 함수를 통해 예측.
+    def __init__(self, weight_path):
+        super().__init__(weight_path)
+        self.model = CustomMobileNetV2(num_classes=2)
         custom_weights = torch.load(weight_path)
         new_state_dict = {}
 
@@ -22,59 +36,42 @@ def model_loader(model_name: str, weight_path: str):
             #     continue
             new_state_dict[key] = value
 
-        model.load_state_dict(new_state_dict, strict=False)
+        self.model.load_state_dict(new_state_dict, strict=False)
+        self.model.eval()
 
-        model.eval()
-
-        return model
-
-    elif model_name == "resnet":  #resnet-50 모델일 경우
-        model = ResNetForImageClassification.from_pretrained(weight_path)
-
-        return model
-
-
-def do_inferance(image: np.array, model, model_name: str) -> int:
-    if model_name == "mobilenet":
-        transform_MobileNet_V2 = transforms.Compose([
+        self.transform = transforms.Compose([
             # transforms.ToPILImage(),
             # transforms.Resize((224, 224)),
             transforms.ToTensor()
         ])
 
-        # 전처리
-        transformed_image = transform_MobileNet_V2(image)
+    def preprocess(self, image: np.array):
+        return self.transform(image).unsqueeze(0)
 
-        # 모델에 입력하기 위해 차원 추가
-        transformed_image = transformed_image.unsqueeze(0)
-
-        outputs = model(transformed_image)
-
-        # 예측된 클래스 인덱스 찾기
+    def predict(self, image: np.array) -> int:
+        transformed_image = self.preprocess(image)
+        outputs = self.model(transformed_image)
         predicted_class = torch.argmax(outputs, dim=1).item()
-
         return predicted_class
 
-    elif model_name == "resnet":
-        #processor 선언
-        pretrained_model_name = "microsoft/resnet-50"
-        processor = AutoImageProcessor.from_pretrained(pretrained_model_name)
 
-        #images: np.array의 형태. 입력값 예측.
-        inputs = processor(images=image, return_tensors="pt")
-        outputs = model(**inputs)
+class ResNetAdapter(ModelAdapter):
+
+    def __init__(self,
+                 weight_path,
+                 pretrained_model_name="microsoft/resnet-50"):
+        super().__init__(weight_path)
+        self.model = ResNetForImageClassification.from_pretrained(weight_path)
+        #resnet는 model.eval()을 하지 않아도 되는것인지?
+        self.processor = AutoImageProcessor.from_pretrained(
+            pretrained_model_name)
+
+    def preprocess(self, image: np.array):
+        return self.processor(images=image, return_tensors="pt")
+
+    def predict(self, image: np.array) -> int:
+        inputs = self.preprocess(image)
+        outputs = self.model(**inputs)
         logits = outputs.logits
         predicted_class = torch.argmax(logits, dim=1).item()
-
-        #예측 label 반환
         return predicted_class
-
-
-model_name = "mobilenet"
-weight_path = "examples/mobilenet_v2-7ebf99e0.pth"
-image_path = "examples/test_image.jpg"
-model = model_loader(model_name, weight_path)
-summary(model.eval(), (3, 224, 224))
-img = Image.open(image_path)
-img_array = np.array(img)
-print(do_inferance(img_array, model, model_name))
