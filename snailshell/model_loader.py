@@ -1,74 +1,79 @@
 import torch
-import torch.nn as nn
 import numpy as np
-from torchvision import models
 from torchvision import transforms
 import torchvision.transforms as transforms
+from transformers import ResNetForImageClassification, AutoImageProcessor
+from snailshell.model_class import CustomMobileNetV2
+from abc import ABC, abstractmethod
+
+#커밋 연습용 주석
 
 
-class CustomMobileNetV2(nn.Module):
+# 부모 ABC
+class ModelAdapter(ABC):
 
-    def __init__(self, num_classes=2):
-        super(CustomMobileNetV2, self).__init__()
+    def __init__(self, weight_path):
+        self.weight_path = weight_path
 
-        model_pretrained = models.mobilenet_v2(pretrained=True)
+    @abstractmethod
+    def preprocess(self, image: np.array):
+        pass
 
-        for param in model_pretrained.parameters():
-            param.requires_grad = False
-
-        model_pretrained.classifier[0].requires_grad = True
-        model_pretrained.classifier[1] = nn.Linear(in_features=1280,
-                                                   out_features=num_classes)
-        self.features = model_pretrained.features
-        self.classifier = model_pretrained.classifier
-
-    def forward(self, x):
-        x = self.features(x)
-        x = x.mean([2, 3])
-        x = self.classifier(x)
-        return x
+    @abstractmethod
+    def predict(self, image: np.array) -> int:
+        pass
 
 
-def model_loader(weight_path):
+# mobilenet class
+class MobileNetAdapter(ModelAdapter):
+    # class를 선언할 때 weight_path를 입력받아 모델과 전처리기 한번만 선언 후 함수를 통해 예측.
+    def __init__(self, weight_path):
+        super().__init__(weight_path)
+        self.model = CustomMobileNetV2(num_classes=2)
+        custom_weights = torch.load(weight_path)
+        new_state_dict = {}
 
-    model = CustomMobileNetV2(num_classes=2)
-    custom_weights = torch.load(weight_path)
-    new_state_dict = {}
+        for key, value in custom_weights.items():
+            # if key.startswith('classifier'):
+            #     continue
+            new_state_dict[key] = value
 
-    for key, value in custom_weights.items():
-        if key.startswith('classifier'):
-            continue
-        new_state_dict[key] = value
+        self.model.load_state_dict(new_state_dict, strict=False)
+        self.model.eval()
 
-    model.load_state_dict(new_state_dict, strict=False)
+        self.transform = transforms.Compose([
+            # transforms.ToPILImage(),
+            # transforms.Resize((224, 224)),
+            transforms.ToTensor()
+        ])
 
-    in_features = model.classifier[1].in_features
-    model.classifier[1] = torch.nn.Linear(in_features, 2)
+    def preprocess(self, image: np.array):
+        return self.transform(image).unsqueeze(0)
 
-    for param in model.features.parameters():
-        param.requires_grad = False
+    def predict(self, image: np.array) -> int:
+        transformed_image = self.preprocess(image)
+        outputs = self.model(transformed_image)
+        predicted_class = torch.argmax(outputs, dim=1).item()
+        return predicted_class
 
-    model.eval()
 
-    return model
+class ResNetAdapter(ModelAdapter):
 
+    def __init__(self,
+                 weight_path,
+                 pretrained_model_name="microsoft/resnet-50"):
+        super().__init__(weight_path)
+        self.model = ResNetForImageClassification.from_pretrained(weight_path)
+        #resnet는 model.eval()을 하지 않아도 되는것인지?
+        self.processor = AutoImageProcessor.from_pretrained(
+            pretrained_model_name)
 
-def do_inferance(image: np.array, model) -> int:
-    transform_MobileNet_V2 = transforms.Compose([
-        transforms.ToPILImage(),
-        transforms.Resize((224, 224)),
-        transforms.ToTensor()
-    ])
+    def preprocess(self, image: np.array):
+        return self.processor(images=image, return_tensors="pt")
 
-    # 전처리
-    transformed_image = transform_MobileNet_V2(image)
-
-    # 모델에 입력하기 위해 차원 추가
-    transformed_image = transformed_image.unsqueeze(0)
-
-    predicted_class = model(transformed_image)
-
-    # 예측된 클래스 인덱스 찾기
-    predicted_class_idx = torch.argmax(predicted_class, dim=1).item()
-
-    return predicted_class_idx
+    def predict(self, image: np.array) -> int:
+        inputs = self.preprocess(image)
+        outputs = self.model(**inputs)
+        logits = outputs.logits
+        predicted_class = torch.argmax(logits, dim=1).item()
+        return predicted_class

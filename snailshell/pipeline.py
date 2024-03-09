@@ -1,15 +1,20 @@
 import cv2
-from model_loader import model_loader, do_inference
+from snailshell.model_loader import model_loader, do_inference
 
-def run(use_pi_camera,
-        video_path,
-        modeltype,
-        visualize,
-        targetfps,):
 
+def run(
+    use_pi_camera,
+    video_path,
+    modeltype,
+    visualize,
+    targetfps,
+):
 
     # 모델 로드
-    model = model_loader()
+    # mobilenet or resnet: 각각에 맞는 weight_path를 넣어줄것.
+    model_name = "resnet"
+    weight_path = "examples/microsoft_resnet-50_240217_163847"
+    model = model_loader(model_name, weight_path)
 
     # 비디오 캡처
     if use_pi_camera:
@@ -25,7 +30,7 @@ def run(use_pi_camera,
     print(f'FPS:{fps}')
     print(f'FRAME_Height:{frame_height}')
     print(f'FRAME_Width:{frame_width}')
-    frame_interval = int(fps/targetfps)
+    frame_interval = int(fps / targetfps)
     frame_count = 0
     predicted_class = -1
     while cap.isOpened():
@@ -34,7 +39,6 @@ def run(use_pi_camera,
         if not ret:
             break
 
-
         frame_count += 1
         if frame_count == frame_interval:
             frame_count = 0
@@ -42,14 +46,13 @@ def run(use_pi_camera,
             # 프레임을 모델에 전달하여 클래스 예측
             predicted_class = do_inference(frame, model, modeltype)
 
-
         if visualize:
             # 예측 클래스를 프레임에 표시
             frame = cv2.resize(frame, (400, 600))
-            cv2.putText(frame, str(predicted_class), (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,0), 2)
+            cv2.putText(frame, str(predicted_class), (50, 100),
+                        cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 0), 2)
 
-
-                # 화면에 프레임 표시
+            # 화면에 프레임 표시
             cv2.imshow('Frame', frame)
 
         # 'q'를 누르면 종료
