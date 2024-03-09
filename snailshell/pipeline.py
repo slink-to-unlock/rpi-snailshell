@@ -1,5 +1,9 @@
+# 서드파티
 import cv2
+
+# 프로젝트
 from snailshell.model_loader import MobileNetAdapter, ResNetAdapter
+
 
 def run(use_pi_camera,
         video_path,
@@ -7,7 +11,6 @@ def run(use_pi_camera,
         weight_path,
         visualize,
         target_fps,):
-
 
     # 모델 로드
     if model_name == "resnet":
@@ -38,7 +41,6 @@ def run(use_pi_camera,
         if not ret:
             break
 
-
         frame_count += 1
         if frame_count == frame_interval:
             frame_count = 0
@@ -46,14 +48,13 @@ def run(use_pi_camera,
             # 프레임을 모델에 전달하여 클래스 예측
             predicted_class = model.predict(frame)
 
-
         if visualize:
             # 예측 클래스를 프레임에 표시
             frame = cv2.resize(frame, (400, 600))
-            cv2.putText(frame, str(predicted_class), (50, 100), cv2.FONT_HERSHEY_SIMPLEX, 3, (0,0,0), 2)
+            cv2.putText(frame, str(predicted_class), (50, 100),
+                        cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 0), 2)
 
-
-                # 화면에 프레임 표시
+            # 화면에 프레임 표시
             cv2.imshow('Frame', frame)
 
         # 'q'를 누르면 종료

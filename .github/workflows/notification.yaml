@@ -1,0 +1,28 @@
+name: Discord Notification
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  discord_notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Notification to Discord
+        uses: rjstone/discord-webhook-notify@v1.0.3
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          username: GitHub Actions
+          text: |
+            **New GitHub Event**
+            Event: ${{ github.event_name }}
+            Repository: ${{ github.repository }}
+            Actor: ${{ github.actor }}
+            Commit: ${{ github.sha }}
+            Message: ${{ github.event.head_commit.message }}

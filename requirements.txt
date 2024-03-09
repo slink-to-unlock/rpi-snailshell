@@ -1,7 +1,13 @@
 torch
 numpy
+torchvision
+opencv-python
+
+# 생산성
 pylint
 pyyaml
 yapf
-torchvision
-opencv-python
+
+# 지속적 배포
+python-dotenv
+requests

@@ -121,7 +121,7 @@ celerybeat.pid
 *.sage.py
 
 # Environments
-.env
+# .env
 .venv
 env/
 venv/
@@ -213,3 +213,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
+
+microsoft_resnet-50_240217_163847
