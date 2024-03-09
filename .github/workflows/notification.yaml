@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - dev
+      - productivity
   pull_request:
     branches:
       - main
@@ -15,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Send Notification to Discord
-        uses: rjstone/discord-webhook-notify@v1.0.3
+        uses: rjstone/discord-webhook-notify@v1.0.4
         with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
           username: GitHub Actions
