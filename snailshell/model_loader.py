@@ -6,6 +6,8 @@ from transformers import ResNetForImageClassification, AutoImageProcessor
 from snailshell.model_class import CustomMobileNetV2
 from abc import ABC, abstractmethod
 
+#커밋 연습용 주석
+
 
 # 부모 ABC
 class ModelAdapter(ABC):
