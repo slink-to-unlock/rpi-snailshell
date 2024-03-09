@@ -1,5 +1,12 @@
 # 개발 환경
 
+## 요구 스펙
+
+- 라즈베리파이 > 4B+
+- 라즈비안 OS **64 Bit**
+
+## `Makefile` 사용법
+
 1. 가상환경을 준비하고 활성화한 다음 `make install` 명령을 실행합니다.
 2. `Makefile`은 다음과 같은 기능을 가지고 있습니다.
     - `make lint`
@@ -17,3 +24,12 @@
 
 - 지속적 배포는 깃허브에 코드가 갱신되면 자동으로 라즈베리파이에 코드가 업데이트되는 기능입니다.
 - rpi-snailshell github 저장소를 읽을 수 있는 권한이 부여된 토큰을 생성하여 `.env` 파일에 등록합니다.
+
+## 라즈베리파이 세팅
+
+### 한글 설정
+
+```bash
+sudo apt-get install -y fonts-unfonts-core ibus ibus-hangul
+sudo reboot
+```
