@@ -1,6 +1,12 @@
 pytorch
 numpy
+torchvision
+
+# 생산성
 pylint
 pyyaml
 yapf
-torchvision
+
+# 지속적 배포
+python-dotenv
+requests
