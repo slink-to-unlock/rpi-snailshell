@@ -19,7 +19,7 @@ jobs:
         uses: rjstone/discord-webhook-notify@v1.0.4
         with:
           webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
-          username: ${{ github.repository }}
+          username: ${{ github.event.repository.name }}
           severity: info
           avatarUrl: https://avatars.githubusercontent.com/u/143706308?s=200&v=4
           text: |
