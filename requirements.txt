@@ -11,3 +11,4 @@ yapf
 # 지속적 배포
 python-dotenv
 requests
+transformers
