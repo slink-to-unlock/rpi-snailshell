@@ -19,3 +19,6 @@ test:
 
 format:
 	python3 -m yapf -ir .
+
+cd-client:
+	python3 -m cd.client
