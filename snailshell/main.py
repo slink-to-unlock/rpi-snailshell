@@ -46,7 +46,7 @@ def parse():
     parser.add_argument(
         '--visualize',
         action='store_true',
-        default=True,
+        default=False,
         help='시각화 수행 여부',
     )
     # 프레임 수를 처리하기 위한 새로운 인자 추가
