@@ -58,7 +58,7 @@ def run(
 
             # 프레임을 모델에 전달하여 클래스 예측
             predicted_class = model.predict(frame)
-            py_serial.write(str(predicted_class).endoce())
+            py_serial.write(str(predicted_class).encode())
 
         if visualize:
             # 예측 클래스를 프레임에 표시
