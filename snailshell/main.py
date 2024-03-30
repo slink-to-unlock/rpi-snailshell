@@ -22,7 +22,6 @@ def parse():
     parser.add_argument(
         '--use_pi_camera',
         action='store_true',
-        default=True,
         help='라즈베리파이 카메라 사용',
     )
     parser.add_argument(
@@ -35,7 +34,7 @@ def parse():
         '--model_name',
         type=str,
         required=True,
-        help='사용할 모델의 이름',
+        help='사용할 모델의 이름: modilenet, resnet',
     )
     parser.add_argument(
         '--weight_path',
@@ -46,7 +45,6 @@ def parse():
     parser.add_argument(
         '--visualize',
         action='store_true',
-        default=False,
         help='시각화 수행 여부',
     )
     # 프레임 수를 처리하기 위한 새로운 인자 추가
@@ -54,7 +52,7 @@ def parse():
         '--target_fps',
         type=int,
         help='최대 초당 프레임 처리량. 단, 이 값이 높아도 실제 처리량은 하드웨어 성능에 의존적입니다.',
-        default=None,
+        default=10,
     )
 
     args = parser.parse_args()

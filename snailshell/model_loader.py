@@ -6,7 +6,7 @@ from transformers import ResNetForImageClassification, AutoImageProcessor
 from snailshell.model_class import CustomMobileNetV2
 from abc import ABC, abstractmethod
 
-#커밋 연습용 주석
+import time
 
 
 # 부모 ABC
@@ -52,7 +52,9 @@ class MobileNetAdapter(ModelAdapter):
 
     def predict(self, image: np.array) -> int:
         transformed_image = self.preprocess(image)
+        start_predict = time.time()
         outputs = self.model(transformed_image)
+        print('image predice time:', time.time() - start_predict)
         predicted_class = torch.argmax(outputs, dim=1).item()
         return predicted_class
 
@@ -73,7 +75,9 @@ class ResNetAdapter(ModelAdapter):
 
     def predict(self, image: np.array) -> int:
         inputs = self.preprocess(image)
+        start_predict = time.time()
         outputs = self.model(**inputs)
+        print('image predice time:', time.time() - start_predict)
         logits = outputs.logits
         predicted_class = torch.argmax(logits, dim=1).item()
         return predicted_class
