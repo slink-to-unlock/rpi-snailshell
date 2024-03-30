@@ -27,3 +27,6 @@ format:
 
 cd-client:
 	python3 -m cd.client
+
+publish:
+	python3 -m flit publish
