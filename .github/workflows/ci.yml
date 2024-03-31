@@ -23,7 +23,7 @@ jobs:
           python-version: '3.8'
 
       - name: Install dependencies
-        run: make install
+        run: make install-without-venv
 
   lint:
     needs: setup
