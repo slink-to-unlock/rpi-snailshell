@@ -54,13 +54,13 @@ def run(
 
     # 포트 번호를 명시적으로 지정하지 않아도 모르는 기기에서 돌 수 있음
     print('아두이노 연결을 확인합니다.')
-    while (port := get_arduino_serial_ports(arduino_port)) is not None:
-        _t = 1
-        _rate = 9600
+    while (port := get_arduino_serial_ports(arduino_port)) is None:
         if port:
-            py_serial = serial.Serial(port, _rate)
-        else:
-            print(f'{_t}초 뒤에 다시 시도합니다...')
+            py_serial = serial.Serial(port, baudrate=9600)
+            print('✅ 아두이노와 연결합니다.')
+            break
+        _t = 1
+        print(f'{_t}초 뒤에 다시 시도합니다...')
         time.sleep(_t)
 
     while cap.isOpened():
