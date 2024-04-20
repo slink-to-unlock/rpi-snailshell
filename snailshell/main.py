@@ -54,7 +54,11 @@ def parse():
         help='최대 초당 프레임 처리량. 단, 이 값이 높아도 실제 처리량은 하드웨어 성능에 의존적입니다.',
         default=10,
     )
-
+    parser.add_argument(
+        '--without_arduino',
+        action='store_true',
+        help='아두이노 없이도 프로그램을 실행할 수 있습니다. 이 옵션을 사용하면 아두이노 관련 기능이 비활성화됩니다.',
+    )
     args = parser.parse_args()
 
     # 라즈베리파이 카메라를 사용하지 않을 경우 비디오 경로가 필수
@@ -83,6 +87,7 @@ def main():
         model_name=args.model_name,
         visualize=args.visualize,
         target_fps=args.target_fps,
+        use_arduino=(not args.without_arduino)
     )
 
 

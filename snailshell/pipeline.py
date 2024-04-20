@@ -6,8 +6,6 @@ import time
 # 프로젝트
 from snailshell.model_loader import MobileNetAdapter, ResNetAdapter
 
-py_serial = serial.Serial('/dev/ttyACM0', 9600)
-
 
 def run(
     use_pi_camera,
@@ -16,7 +14,10 @@ def run(
     weight_path,
     visualize,
     target_fps,
+    use_arduino,
 ):
+    if use_arduino:
+        py_serial = serial.Serial('/dev/ttyACM0', 9600)
 
     print('모델을 로드합니다.')
     if model_name == "resnet":
@@ -57,7 +58,9 @@ def run(
 
             # 프레임을 모델에 전달하여 클래스 예측
             predicted_class = model.predict(frame)
-            py_serial.write(str(predicted_class).encode())
+
+            if use_arduino:
+                py_serial.write(str(predicted_class).encode())
 
         if visualize:
             # 예측 클래스를 프레임에 표시
