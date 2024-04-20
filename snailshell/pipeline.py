@@ -1,14 +1,15 @@
-# 내장
-import time
-from typing import Union
-
 # 서드파티
 import cv2
 import serial
+import time
 
 # 프로젝트
-from snailshell.utils.port import get_arduino_serial_ports
 from snailshell.model_loader import MobileNetAdapter, ResNetAdapter
+
+py_serial = serial.Serial(
+    '/dev/ttyACM0',
+    9600,
+)
 
 
 def run(
@@ -18,23 +19,18 @@ def run(
     weight_path,
     visualize,
     target_fps,
-    arduino_port: Union[str, None],
 ):
 
     # 모델 로드
-    print('모델을 로드합니다.')
     if model_name == "resnet":
         model = ResNetAdapter(weight_path)
     elif model_name == "mobilenet":
         model = MobileNetAdapter(weight_path)
-    print('✅ 모델을 로드했습니다.')
 
     # 비디오 캡처
     if use_pi_camera:
-        print('카메라를 준비합니다.')
         cap = cv2.VideoCapture(0)
     else:
-        print('비디오를 준비합니다.')
         cap = cv2.VideoCapture(video_path)
 
     cap.set(cv2.CAP_PROP_FPS, 50)
@@ -50,19 +46,6 @@ def run(
     frame_interval = int(fps / target_fps)
     frame_count = 0
     predicted_class = -1
-    print('✅ 준비를 마쳤습니다.')
-
-    # 포트 번호를 명시적으로 지정하지 않아도 모르는 기기에서 돌 수 있음
-    print('아두이노 연결을 확인합니다.')
-    while (port := get_arduino_serial_ports(arduino_port)) is not None:
-        _t = 1
-        _rate = 9600
-        if port:
-            py_serial = serial.Serial(port, _rate)
-        else:
-            print(f'{_t}초 뒤에 다시 시도합니다...')
-        time.sleep(_t)
-
     while cap.isOpened():
         # 비디오로부터 프레임 읽기
         ret, frame = cap.read()
@@ -80,15 +63,8 @@ def run(
         if visualize:
             # 예측 클래스를 프레임에 표시
             frame = cv2.resize(frame, (500, 500))
-            cv2.putText(
-                frame,
-                str(predicted_class),
-                (50, 100),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                3,
-                (0, 0, 0),
-                2,
-            )
+            cv2.putText(frame, str(predicted_class), (50, 100),
+                        cv2.FONT_HERSHEY_SIMPLEX, 3, (0, 0, 0), 2)
 
             # 화면에 프레임 표시
             cv2.imshow('Frame', frame)
