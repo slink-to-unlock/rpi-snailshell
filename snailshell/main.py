@@ -74,7 +74,7 @@ def parse():
     return args
 
 
-if __name__ == '__main__':
+def main():
     args = parse()
     pipeline.run(
         use_pi_camera=args.use_pi_camera,
@@ -84,3 +84,7 @@ if __name__ == '__main__':
         visualize=args.visualize,
         target_fps=args.target_fps,
     )
+
+
+if __name__ == '__main__':
+    main()
