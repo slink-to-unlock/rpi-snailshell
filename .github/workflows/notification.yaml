@@ -1,0 +1,30 @@
+name: Discord Notification
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+      - productivity
+  pull_request:
+    branches:
+      - main
+      - dev
+
+jobs:
+  discord_notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send Notification to Discord
+        uses: rjstone/discord-webhook-notify@v1.0.4
+        with:
+          webhookUrl: ${{ secrets.DISCORD_WEBHOOK }}
+          username: ${{ github.event.repository.name }}
+          severity: info
+          avatarUrl: https://avatars.githubusercontent.com/u/143706308?s=200&v=4
+          text: |
+            **${{ github.ref_name }}** 브랜치에 **${{ github.actor }}**님의 새로운 **${{ github.event_name }}**가 있어요!
+          description: |
+            ${{ github.event.head_commit.message }}
+          footer: |
+            ${{ github.ref_name }}
