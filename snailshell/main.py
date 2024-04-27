@@ -22,14 +22,14 @@ from snailshell.frame_loader.picamera_backend import PiCameraBackend
 def parse():
     parser = argparse.ArgumentParser(description='런타임 애플리케이션')
     parser.add_argument(
-        '--use_pi_camera',
+        '--use_camera',
         action='store_true',
-        help='라즈베리파이 카메라 사용',
+        help='카메라 사용',
     )
     parser.add_argument(
         '--video_path',
         type=str,
-        help='라즈베리파이 카메라를 사용하지 않는 경우 입력하는 비디오파일의 경로',
+        help='카메라를 사용하지 않는 경우 입력하는 비디오파일의 경로',
         default='',
     )
     parser.add_argument(
@@ -56,6 +56,11 @@ def parse():
         default=10,
     )
     parser.add_argument(
+        '--picamera_module_backend',
+        action='store_true',
+        help='`picamera` 모듈을 사용하도록 합니다.',
+    )
+    parser.add_argument(
         '--without_arduino',
         action='store_true',
         help='아두이노 없이도 프로그램을 실행할 수 있습니다. 이 옵션을 사용하면 아두이노 관련 기능이 비활성화됩니다.',
@@ -63,7 +68,7 @@ def parse():
     args = parser.parse_args()
 
     # 라즈베리파이 카메라를 사용하지 않을 경우 비디오 경로가 필수
-    if not args.use_pi_camera:
+    if not args.use_camera:
         if not args.video_path:
             raise ValueError('카메라를 사용하지 않는 경우 `--video_path` 가 필수적입니다.')
         elif not os.path.exists(args.video_path):
@@ -75,6 +80,11 @@ def parse():
     if not os.path.exists(args.weight_path):
         raise FileNotFoundError(f"{args.weight_path} 파일이나 디렉토리를 찾을 수 없습니다.")
 
+    # 파이카메라 모듈을 사용하고자 하는 경우, 반드시 카메라를 사용해야 함
+    if args.picamera_module_backend:
+        if not args.use_camera:
+            raise ValueError('`picamera` 모듈 백엔드를 사용하고자 하는 경우 반드시 카메라를 사용해야 합니다.')
+
     return args
 
 
@@ -82,14 +92,17 @@ def main():
     args = parse()
 
     # 백엔드 선택
-    if args.use_pi_camera:
+    if args.picamera_module_backend:
         backend = PiCameraBackend()
     else:
-        backend = OpenCVBackend(args.video_path)
+        if args.use_camera:
+            backend = OpenCVBackend(0)
+        else:
+            backend = OpenCVBackend(args.video_path)
 
     # 파이프라인 설정 및 실행
     pipeline = BasePipeline(
-        backend=backend,
+        frame_loader=backend,
         model_name=args.model_name,
         weight_path=args.weight_path,
         use_arduino=not args.without_arduino,

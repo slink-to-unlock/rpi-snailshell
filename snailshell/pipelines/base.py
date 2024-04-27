@@ -34,9 +34,15 @@ class BasePipeline:
             import serial
             self.serial = serial.Serial('/dev/ttyACM0', 9600)
 
+        print(f'비디오 스트림의 프레임은 {self.frame_loader.fps}프레임입니다.')
+        print(f'최대 {self.frame_interval}프레임마다 1번씩 추론을 수행합니다.')
+
+    @property
+    def frame_interval(self):
+        return int(self.frame_loader.fps / self.target_fps)
+
     def run(self):
         self.frame_loader.initialize()
-        frame_interval = int(self.frame_loader.fps / self.target_fps)
         frame_count = 0
         while True:
             frame = self.frame_loader.get_frame()
@@ -45,7 +51,7 @@ class BasePipeline:
                 break
 
             frame_count += 1
-            if frame_count == frame_interval:
+            if frame_count == self.frame_interval:
                 frame_count = 0
 
                 predicted_class = self.model.predict(frame)

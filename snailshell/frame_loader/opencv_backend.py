@@ -7,8 +7,8 @@ from snailshell.frame_loader.base import FrameLoaderBackend
 
 class OpenCVBackend(FrameLoaderBackend):
 
-    def __init__(self, video_path):
-        self.cap = cv2.VideoCapture(video_path)
+    def __init__(self, source):
+        self.cap = cv2.VideoCapture(source)
         self.cap.set(cv2.CAP_PROP_FPS, 50)
 
     @property

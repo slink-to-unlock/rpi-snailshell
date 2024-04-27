@@ -5,7 +5,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "test with webcam",
+            "name": "test with video",
             "type": "debugpy",
             "request": "launch",
             "module": "snailshell.main",
@@ -13,6 +13,19 @@
                 "--model_name", "mobilenet",
                 "--video_path", "examples/test_video.mov",
                 "--weight_path", "examples/mobilenet-v2.pth",
+                "--without_arduino",
+                "--visualize"
+            ]
+        },
+        {
+            "name": "test with webcam",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "snailshell.main",
+            "args": [
+                "--model_name", "mobilenet",
+                "--weight_path", "examples/mobilenet-v2.pth",
+                "--use_camera",
                 "--without_arduino",
                 "--visualize"
             ]
