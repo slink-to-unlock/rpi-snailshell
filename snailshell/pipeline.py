@@ -57,7 +57,7 @@ def run(
             frame_count = 0
 
             # 프레임을 모델에 전달하여 클래스 예측
-            predicted_class = model.predict(frame)
+            predicted_class = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
 
             if use_arduino:
                 py_serial.write(str(predicted_class).encode())
