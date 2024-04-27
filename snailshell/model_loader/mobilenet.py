@@ -47,8 +47,10 @@ class MobileNetAdapter(ModelAdapter):
 
     def predict(self, image: np.array) -> int:
         transformed_image = self.preprocess(image)
-        start_predict = time.time()
+        # print(f'input: (type: {type(transformed_image)}) {transformed_image}')
+        # start_predict = time.time()
         outputs = self.model(transformed_image)
-        print('image predice time:', time.time() - start_predict)
+        # print('image predice time:', time.time() - start_predict)
+        print('🧐 [0, 1]:', torch.softmax(outputs, dim=-1))
         predicted_class = torch.argmax(outputs, dim=1).item()
         return predicted_class
