@@ -14,7 +14,9 @@ import os
 import argparse
 
 # 프로젝트
-from snailshell import pipeline
+from snailshell.pipelines.base import BasePipeline
+from snailshell.frame_loader.opencv_backend import OpenCVBackend
+from snailshell.frame_loader.picamera_backend import PiCameraBackend
 
 
 def parse():
@@ -34,7 +36,7 @@ def parse():
         '--model_name',
         type=str,
         required=True,
-        help='사용할 모델의 이름: modilenet, resnet',
+        help='사용할 모델의 이름: mobilenet, resnet',
     )
     parser.add_argument(
         '--weight_path',
@@ -47,7 +49,6 @@ def parse():
         action='store_true',
         help='시각화 수행 여부',
     )
-    # 프레임 수를 처리하기 위한 새로운 인자 추가
     parser.add_argument(
         '--target_fps',
         type=int,
@@ -71,7 +72,6 @@ def parse():
     # 프레임 수가 제공되었는지 확인 (선택적)
     if args.target_fps is not None and args.target_fps < 1:
         raise ValueError('`--target_fps` 값은 1 이상의 정수여야 합니다.')
-
     if not os.path.exists(args.weight_path):
         raise FileNotFoundError(f"{args.weight_path} 파일이나 디렉토리를 찾을 수 없습니다.")
 
@@ -80,15 +80,23 @@ def parse():
 
 def main():
     args = parse()
-    pipeline.run(
-        use_pi_camera=args.use_pi_camera,
-        video_path=args.video_path,
-        weight_path=args.weight_path,
+
+    # 백엔드 선택
+    if args.use_pi_camera:
+        backend = PiCameraBackend()
+    else:
+        backend = OpenCVBackend(args.video_path)
+
+    # 파이프라인 설정 및 실행
+    pipeline = BasePipeline(
+        backend=backend,
         model_name=args.model_name,
+        weight_path=args.weight_path,
+        use_arduino=not args.without_arduino,
         visualize=args.visualize,
         target_fps=args.target_fps,
-        use_arduino=(not args.without_arduino)
     )
+    pipeline.run()
 
 
 if __name__ == '__main__':

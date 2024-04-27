@@ -1,0 +1,21 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test with webcam",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "snailshell.main",
+            "args": [
+                "--model_name", "mobilenet",
+                "--video_path", "examples/test_video.mov",
+                "--weight_path", "examples/mobilenet-v2.pth",
+                "--without_arduino",
+                "--visualize"
+            ]
+        }
+    ]
+}
