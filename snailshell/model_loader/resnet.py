@@ -33,9 +33,11 @@ class ResNetAdapter(ModelAdapter):
         image: np.array,
     ) -> int:
         inputs = self.preprocess(image)
-        start_predict = time.time()
+        # print(f'input: (type: {type(inputs)}) {inputs}')
+        # start_predict = time.time()
         outputs = self.model(**inputs)
-        print('image predice time:', time.time() - start_predict)
+        # print('image predice time:', time.time() - start_predict)
         logits = outputs.logits
+        print('🧐 [0, 1]:', torch.softmax(logits, dim=-1))
         predicted_class = torch.argmax(logits, dim=1).item()
         return predicted_class
