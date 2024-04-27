@@ -1,8 +1,8 @@
 # 프로젝트
-from snailshell.frame_loader.base import Backend
+from snailshell.frame_loader.base import FrameLoaderBackend
 
 
-class PiCameraBackend(Backend):
+class PiCameraBackend(FrameLoaderBackend):
 
     def __init__(self):
         from picamera import PiCamera

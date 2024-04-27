@@ -2,6 +2,7 @@
 import cv2
 
 # 프로젝트
+from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
 
@@ -10,7 +11,7 @@ class BasePipeline:
 
     def __init__(
         self,
-        backend,
+        frame_loader: FrameLoaderBackend,
         model_name: str,
         weight_path: str,
         use_arduino=False,
@@ -24,7 +25,7 @@ class BasePipeline:
         else:
             raise ValueError("Unsupported model name. Please choose 'mobilenet' or 'resnet'.")
 
-        self.frame_loader = backend
+        self.frame_loader = frame_loader
         self.model = model
         self.use_arduino = use_arduino
         self.visualize = visualize

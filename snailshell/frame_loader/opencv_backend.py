@@ -2,10 +2,10 @@
 import cv2
 
 # 프로젝트
-from snailshell.frame_loader.base import Backend
+from snailshell.frame_loader.base import FrameLoaderBackend
 
 
-class OpenCVBackend(Backend):
+class OpenCVBackend(FrameLoaderBackend):
 
     def __init__(self, video_path):
         self.cap = cv2.VideoCapture(video_path)

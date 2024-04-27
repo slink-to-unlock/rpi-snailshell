@@ -2,7 +2,7 @@
 from abc import ABC, abstractmethod
 
 
-class Backend(ABC):
+class FrameLoaderBackend(ABC):
 
     @abstractmethod
     def initialize(self):
