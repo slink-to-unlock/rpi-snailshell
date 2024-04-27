@@ -31,6 +31,9 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Install dependencies
+        run: make install-without-venv
+
       - name: Lint with pylint
         run: make lint
 
@@ -39,6 +42,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      - name: Install dependencies
+        run: make install-without-venv
 
       - name: Run tests
         run: make test
