@@ -48,7 +48,6 @@ def run(
     while cap.isOpened():
         # 비디오로부터 프레임 읽기
         ret, frame = cap.read()
-        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB, frame)
 
         if not ret:
             print('리턴받은 프레임이 없습니다.')
