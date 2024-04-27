@@ -1,14 +1,3 @@
-""" 사용예시
-python3 -m snailshell.main \
-    --model_name your_model_name \
-    --weight_path /path/to/weights
-
-python3 -m snailshell.main \
-    --video_path /path/to/video.mp4 \
-    --model_name your_model_name \
-    --visualize \
-    --weight_path /path/to/weights
-"""
 # 내장
 import os
 import argparse
