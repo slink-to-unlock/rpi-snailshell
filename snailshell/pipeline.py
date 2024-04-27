@@ -48,6 +48,8 @@ def run(
     while cap.isOpened():
         # 비디오로부터 프레임 읽기
         ret, frame = cap.read()
+        cv2.cvtColor(frame, cv2.COLOR_BGR2RGB, frame)
+
         if not ret:
             print('리턴받은 프레임이 없습니다.')
             break
@@ -57,7 +59,7 @@ def run(
             frame_count = 0
 
             # 프레임을 모델에 전달하여 클래스 예측
-            predicted_class = model.predict(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+            predicted_class = model.predict(frame)
 
             if use_arduino:
                 py_serial.write(str(predicted_class).encode())
