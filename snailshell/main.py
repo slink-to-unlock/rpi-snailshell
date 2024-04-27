@@ -47,7 +47,7 @@ def parse():
     parser.add_argument(
         '--picamera_module_backend',
         action='store_true',
-        help='`picamera` 모듈을 사용하도록 합니다.',
+        help='`picamera` 모듈을 사용하도록 합니다. 지정하지 않으면 opencv 백엔드를 사용합니다.',
     )
     parser.add_argument(
         '--without_arduino',
