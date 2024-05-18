@@ -68,9 +68,13 @@ class DataExtraction:
 
         # 임시 파일 및 디렉토리 정리
         for file in image_filenames:
-            os.remove(file)
-        os.remove(json_file_path)
-        shutil.rmtree(save_path)  # 디렉토리를 비워야 한다면 shutil.rmtree 사용
-        os.remove(zip_path)
+            if os.path.exists(file):
+                os.remove(file)
+        if os.path.exists(json_file_path):
+            os.remove(json_file_path)
+        if os.path.exists(save_path):
+            shutil.rmtree(save_path)
+        if os.path.exists(zip_path):
+            os.remove(zip_path)
 
         print(f'파일 {zip_filename} 이(가) Google Drive에 업로드되었습니다.')
