@@ -5,6 +5,7 @@ import cv2
 from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
+from snailshell.pipelines.DataExtraction import DataExtraction
 
 
 class BasePipeline:
@@ -44,6 +45,17 @@ class BasePipeline:
     def run(self):
         self.frame_loader.initialize()
         frame_count = 0
+
+        # 추가 학습 데이터를 저장할 최종 list
+        extracted_images = []
+        extracted_labels = []
+        # 이미지와 라벨을 임시로 저장할 list
+        run_images = []
+        run_labels = []
+
+        predicted_class = -1
+        last_predicted_class = -1
+
         while True:
             frame = self.frame_loader.get_frame()
             if frame is None:
@@ -58,6 +70,12 @@ class BasePipeline:
                 if self.use_arduino:
                     self.serial.write(str(predicted_class).encode())
 
+                # 예측 클래스가 변경될 때 run_images와 run_labels 초기화
+                if predicted_class != last_predicted_class:
+                    run_images = []
+                    run_labels = []
+                    last_predicted_class = predicted_class
+
                 if self.visualize:
                     display_frame = cv2.resize(frame, (500, 500))
                     cv2.putText(
@@ -71,8 +89,25 @@ class BasePipeline:
                     )
                     cv2.imshow('Frame', display_frame)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            # 이미지와 라벨을 저장할 리스트에 추가
+            run_images.append(frame)
+            run_labels.append(predicted_class)
+
+            # 'r' 버튼 확인
+            key = cv2.waitKey(1)
+            if key & 0xFF == ord('r'):
+                extracted_images.append(run_images)
+                extracted_labels.append([0 if predicted_class == 1 else 1] * len(run_labels))
+                # 이미지와 라벨을 저장할 리스트 초기화
+                run_images = []
+                run_labels = []
+
+            if key & 0xFF == ord('q'):
                 break
+
+        # extracted_images가 비어 있지 않은 경우에만 DataExtraction.Upload 호출
+        if extracted_images:
+            DataExtraction.Upload(extracted_images, extracted_labels)
 
         self.frame_loader.release()
         cv2.destroyAllWindows()
