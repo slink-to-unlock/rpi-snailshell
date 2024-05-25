@@ -19,7 +19,7 @@ class DataExtraction:
         zip_filename = f"{date_str}.zip"
         save_path = date_str
         zip_path = zip_filename
-        save_directory_id = '1Pf_knuMcgaUW_89sScwy0xCjNIp1WTYL'
+        save_directory_id = '1LX3kYUQJJAqR5S_wvud8TNz428sWi5Yh'
 
         # 이미지 및 라벨을 저장할 디렉토리 생성
         if not os.path.exists(save_path):

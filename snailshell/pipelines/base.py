@@ -1,5 +1,5 @@
-# 서드파티
 import cv2
+from collections import deque
 
 # 프로젝트
 from snailshell.frame_loader.base import FrameLoaderBackend
@@ -45,13 +45,14 @@ class BasePipeline:
     def run(self):
         self.frame_loader.initialize()
         frame_count = 0
+        save_sec = 3  # interrupt가 입력되면 이전 save_sec 초의 프레임을 저장.
 
         # 추가 학습 데이터를 저장할 최종 list
         extracted_images = []
         extracted_labels = []
         # 이미지와 라벨을 임시로 저장할 list
-        run_images = []
-        run_labels = []
+        run_images = deque(maxlen=self.frame_interval * save_sec)
+        run_labels = deque(maxlen=self.frame_interval * save_sec)
 
         predicted_class = -1
         last_predicted_class = -1
@@ -70,12 +71,6 @@ class BasePipeline:
                 if self.use_arduino:
                     self.serial.write(str(predicted_class).encode())
 
-                # 예측 클래스가 변경될 때 run_images와 run_labels 초기화
-                if predicted_class != last_predicted_class:
-                    run_images = []
-                    run_labels = []
-                    last_predicted_class = predicted_class
-
                 if self.visualize:
                     display_frame = cv2.resize(frame, (500, 500))
                     cv2.putText(
@@ -89,18 +84,15 @@ class BasePipeline:
                     )
                     cv2.imshow('Frame', display_frame)
 
-            # 이미지와 라벨을 저장할 리스트에 추가
+            # 이미지와 라벨을 저장할 deque에 추가
             run_images.append(frame)
             run_labels.append(predicted_class)
 
             # 'r' 버튼 확인
             key = cv2.waitKey(1)
             if key & 0xFF == ord('r'):
-                extracted_images.append(run_images)
-                extracted_labels.append([0 if predicted_class == 1 else 1] * len(run_labels))
-                # 이미지와 라벨을 저장할 리스트 초기화
-                run_images = []
-                run_labels = []
+                extracted_images.append(list(run_images))
+                extracted_labels.append(list(run_labels))
 
             if key & 0xFF == ord('q'):
                 break
