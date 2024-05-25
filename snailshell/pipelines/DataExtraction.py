@@ -14,7 +14,7 @@ class DataExtraction:
     @staticmethod
     def Upload(extracted_images, extracted_labels):
         # 날짜를 기준으로 파일 이름 생성
-        date_str = datetime.datetime.now().strftime("%Y%m%d")
+        date_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         json_filename = f"{date_str}.json"
         zip_filename = f"{date_str}.zip"
         save_path = date_str
