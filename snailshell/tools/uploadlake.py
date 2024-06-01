@@ -9,10 +9,10 @@ from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
 
-class UploadLake:
+class uploadlake:
 
     @staticmethod
-    def Upload(extracted_data, dishwashing_start):
+    def upload(extracted_data, dishwashing_start, run_images):
         # 날짜를 기준으로 파일 이름 생성
         date_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         json_filename = f"{date_str}.json"
@@ -35,11 +35,11 @@ class UploadLake:
         # 이미지 파일 저장
         image_filenames = []
         for interaction, data_list in extracted_data.items():
-            for data in data_list:
-                img_filename = f"sukcess_{data['timestamp']}.png"
+            for i, data in enumerate(data_list):
+                img_filename = data["image"]
                 img_path = os.path.join(save_path, img_filename)
                 # 이미지 저장
-                cv2.imwrite(img_path, data["image"])
+                cv2.imwrite(img_path, run_images[i])
                 image_filenames.append(img_path)
                 # 이미지 파일 이름 업데이트
                 data["image"] = img_filename

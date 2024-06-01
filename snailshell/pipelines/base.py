@@ -6,7 +6,7 @@ from datetime import datetime
 from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
-from snailshell.pipelines.UploadLake import UploadLake
+from snailshell.tools.uploadlake import uploadlake
 
 
 class BasePipeline:
@@ -48,7 +48,7 @@ class BasePipeline:
     def run(self):
         self.frame_loader.initialize()
         frame_count = 0
-        save_sec = 3  # interaction가 입력되면 이전 save_sec 초의 프레임을 저장.
+        save_sec = 3  # interrupt가 입력되면 이전 save_sec 초의 프레임을 저장.
 
         # 추가 학습 데이터를 저장할 최종 list
         extracted_data = {}
@@ -88,9 +88,9 @@ class BasePipeline:
 
             # 이미지와 라벨을 저장할 deque에 추가
             run_images.append(frame)
-            run_labels.append(predicted_class)
             timestamp = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-4]  # 밀리초를 두 자리로 자르기
             timestamps.append(timestamp)
+            run_labels.append(predicted_class)
 
             # 'r' 버튼 확인
             key = cv2.waitKey(1)
@@ -103,17 +103,16 @@ class BasePipeline:
                         "timestamp": timestamps[i],
                         "model_output": run_labels[i],
                         "magnetic": run_labels[i],  # 수정: magnetic 값을 넣어주는 곳
-                        "image":
-                            run_images[i]  # 이미지 데이터를 저장
+                        "image": f"sukcess_{timestamps[i]}.png"  # 이미지 파일 이름을 저장
                     } for i in range(len(run_images))
                 ]
 
             if key & 0xFF == ord('q'):
                 break
 
-        # extracted_data가 비어 있지 않은 경우에만 UploadLake.Upload 호출
+        # extracted_data가 비어 있지 않은 경우에만 DataExtraction.Upload 호출
         if extracted_data:
-            UploadLake.Upload(extracted_data, self.dishwashing_start)
+            uploadlake.upload(extracted_data, self.dishwashing_start, run_images)
 
         self.frame_loader.release()
         cv2.destroyAllWindows()
