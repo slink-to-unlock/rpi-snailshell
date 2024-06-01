@@ -9,10 +9,10 @@ from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
 
 
-class DataExtraction:
+class UploadLake:
 
     @staticmethod
-    def Upload(extracted_images, extracted_labels):
+    def Upload(extracted_data, dishwashing_start):
         # 날짜를 기준으로 파일 이름 생성
         date_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         json_filename = f"{date_str}.json"
@@ -26,18 +26,26 @@ class DataExtraction:
             os.makedirs(save_path)
 
         # JSON 데이터 준비
-        json_data = []
+        json_data = {
+            "version": 0,
+            "dishwashing_id": "sukcess",
+            "dishwashing_start": dishwashing_start,
+        }
 
         # 이미지 파일 저장
         image_filenames = []
-        for idx, images in enumerate(extracted_images):
-            for img_idx, img in enumerate(images):
-                img_filename = f"{date_str}_{idx * len(images) + img_idx + 1}.jpg"
-                full_img_path = os.path.join(save_path, img_filename)
-                cv2.imwrite(full_img_path, img)
-                image_filenames.append(full_img_path)
-                # JSON 데이터 추가
-                json_data.append({"image": img_filename, "label": extracted_labels[idx][img_idx]})
+        for interaction, data_list in extracted_data.items():
+            for data in data_list:
+                img_filename = f"sukcess_{data['timestamp']}.png"
+                img_path = os.path.join(save_path, img_filename)
+                # 이미지 저장
+                cv2.imwrite(img_path, data["image"])
+                image_filenames.append(img_path)
+                # 이미지 파일 이름 업데이트
+                data["image"] = img_filename
+
+            # JSON 데이터 추가
+            json_data[interaction] = data_list
 
         # JSON 파일 생성
         json_file_path = os.path.join(save_path, json_filename)
@@ -52,7 +60,7 @@ class DataExtraction:
 
         # Google Drive에 파일 업로드
         SCOPES = ['https://www.googleapis.com/auth/drive.file']
-        SERVICE_ACCOUNT_FILE = '/Users/sukcess/Downloads/ai-sink-aa94e4cf6758.json'
+        SERVICE_ACCOUNT_FILE = '/Users/sukcess/WorkSpace/sink/ai-sink-aa94e4cf6758.json'
 
         credentials = service_account.Credentials.from_service_account_file(
             SERVICE_ACCOUNT_FILE, scopes=SCOPES
