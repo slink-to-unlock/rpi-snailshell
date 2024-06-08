@@ -6,7 +6,7 @@ from datetime import datetime
 from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
-from snailshell.tools.uploadlake import uploadlake
+from snailshell.tools.uploadlake import UploadLake
 
 
 class BasePipeline:
@@ -19,13 +19,16 @@ class BasePipeline:
         use_arduino=False,
         visualize=False,
         target_fps=10,
+        # user_id='user_1234',  # 추가: user_id 인자
     ):
         if model_name.lower() == "mobilenet":
             model = MobileNetAdapter(weight_path)
         elif model_name.lower() == "resnet":
             model = ResNetAdapter(weight_path)
         else:
-            raise ValueError("Unsupported model name. Please choose 'mobilenet' or 'resnet'.")
+            raise ValueError(
+                "Unsupported model name. Please choose 'mobilenet' or 'resnet'."
+            )
 
         self.frame_loader = frame_loader
         self.model = model
@@ -34,6 +37,10 @@ class BasePipeline:
         self.target_fps = target_fps
         self.dishwashing_start = datetime.now().strftime("%Y%m%d")
         self.interaction_counter = 1
+
+        user_id = 'user_1234'  # 함수 인자 수정 전 임시 user_id 변수 생성.
+        self.uploader = UploadLake(user_id)  # 추가: UploadLake 인스턴스 초기화
+
         if self.use_arduino:
             import serial
             self.serial = serial.Serial('/dev/ttyACM0', 9600)
@@ -88,31 +95,20 @@ class BasePipeline:
 
             # 이미지와 라벨을 저장할 deque에 추가
             run_images.append(frame)
-            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S.%f")[:-4]  # 밀리초를 두 자리로 자르기
-            timestamps.append(timestamp)
             run_labels.append(predicted_class)
 
             # 'r' 버튼 확인
             key = cv2.waitKey(1)
             if key & 0xFF == ord('r'):
                 print('interaction이 감지되었습니다.')
-                interaction_key = f"interaction{self.interaction_counter}"
-                self.interaction_counter += 1
-                extracted_data[interaction_key] = [
-                    {
-                        "timestamp": timestamps[i],
-                        "model_output": run_labels[i],
-                        "magnetic": run_labels[i],  # 수정: magnetic 값을 넣어주는 곳
-                        "image": f"sukcess_{timestamps[i]}.png"  # 이미지 파일 이름을 저장
-                    } for i in range(len(run_images))
-                ]
+                # list에 들어 있는 이미지를 JSONFileHandler class의 add_interaction 형태로 가공. 그러나 이미지를 다운로드하거나
 
             if key & 0xFF == ord('q'):
                 break
 
-        # extracted_data가 비어 있지 않은 경우에만 DataExtraction.Upload 호출
-        if extracted_data:
-            uploadlake.upload(extracted_data, self.dishwashing_start, run_images)
+        if upload_imgdata:
+            self.uploader.save_data_and_images(
+                extracted_data, list(run_images))  # 수정: 호출 메소드 변경
 
         self.frame_loader.release()
         cv2.destroyAllWindows()

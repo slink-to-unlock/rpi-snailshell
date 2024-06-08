@@ -1,88 +1,77 @@
 import os
 import json
 import zipfile
-import datetime
 import cv2
 import shutil
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from google.oauth2 import service_account
+from autosink_data_elt.log import filehandler
 
 
-class uploadlake:
+class UploadLake(filehandler.JSONFileHandler):
 
-    @staticmethod
-    def upload(extracted_data, dishwashing_start, run_images):
-        # 날짜를 기준으로 파일 이름 생성
-        date_str = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        json_filename = f"{date_str}.json"
-        zip_filename = f"{date_str}.zip"
-        save_path = date_str
-        zip_path = zip_filename
-        save_directory_id = '1LX3kYUQJJAqR5S_wvud8TNz428sWi5Yh'
+    def __init__(self, user_id, timezone='Asia/Seoul'):
+        super().__init__(user_id, timezone)
+        self.save_directory_id = '1LX3kYUQJJAqR5S_wvud8TNz428sWi5Yh'
+        self.zip_path = f"{self.folder_name}.zip"
 
-        # 이미지 및 라벨을 저장할 디렉토리 생성
-        if not os.path.exists(save_path):
-            os.makedirs(save_path)
+    def save_data_and_images(self, extracted_data, run_images):
+        # 데이터 초기화 및 저장
+        data = self.create_default_data(version=2)
 
-        # JSON 데이터 준비
-        json_data = {
-            "version": 0,
-            "dishwashing_id": "sukcess",
-            "dishwashing_start": dishwashing_start,
-        }
+        # 이미지 및 상호작용 데이터 처리
+        for interaction_key, interactions in extracted_data.items():
+            for interaction_data in interactions:
+                timestamp = interaction_data["timestamp"]
+                model_output = interaction_data["model_output"]
+                magnetic = interaction_data["magnetic"]
+                image = cv2.imread(interaction_data["image"])
+                img_path = os.path.join(self.folder_name,
+                                        f"{self.image_counter}.png")
+                cv2.imwrite(img_path, image)
+                interaction_data["image"] = img_path
+                # 상호작용 추가
+                data = self.add_interaction(data,
+                                            timestamp=timestamp,
+                                            model_output=model_output,
+                                            magnetic=magnetic)
 
-        # 이미지 파일 저장
-        image_filenames = []
-        for interaction, data_list in extracted_data.items():
-            for i, data in enumerate(data_list):
-                img_filename = data["image"]
-                img_path = os.path.join(save_path, img_filename)
-                # 이미지 저장
-                cv2.imwrite(img_path, run_images[i])
-                image_filenames.append(img_path)
-                # 이미지 파일 이름 업데이트
-                data["image"] = img_filename
+        self.write_file(data)
 
-            # JSON 데이터 추가
-            json_data[interaction] = data_list
+        # ZIP 파일 생성 및 업로드
+        self.zip_and_upload()
 
-        # JSON 파일 생성
-        json_file_path = os.path.join(save_path, json_filename)
-        with open(json_file_path, 'w') as json_file:
-            json.dump(json_data, json_file, indent=4)
-
-        # ZIP 파일 생성
-        with zipfile.ZipFile(zip_path, 'w') as zipf:
-            for file in image_filenames:
-                zipf.write(file)
+    def zip_and_upload(self):
+        with zipfile.ZipFile(self.zip_path, 'w') as zipf:
+            for root, dirs, files in os.walk(self.folder_name):
+                for file in files:
+                    zipf.write(os.path.join(root, file), arcname=file)
+            json_file_path = os.path.join(self.folder_name,
+                                          'interactions.json')
             zipf.write(json_file_path)
 
-        # Google Drive에 파일 업로드
+        self.upload_to_drive()
+
+    def upload_to_drive(self):
         SCOPES = ['https://www.googleapis.com/auth/drive.file']
-        SERVICE_ACCOUNT_FILE = '/Users/sukcess/WorkSpace/sink/ai-sink-aa94e4cf6758.json'
+        SERVICE_ACCOUNT_FILE = '/path/to/your/service-account.json'
 
         credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES
-        )
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
         service = build('drive', 'v3', credentials=credentials)
 
         file_metadata = {
-            'name': zip_filename,
-            'parents': [save_directory_id]  # 파일을 업로드할 폴더 ID
+            'name': os.path.basename(self.zip_path),
+            'parents': [self.save_directory_id]
         }
-        media = MediaFileUpload(zip_path, mimetype='application/zip')
-        service.files().create(body=file_metadata, media_body=media, fields='id').execute()
+        media = MediaFileUpload(self.zip_path, mimetype='application/zip')
+        service.files().create(body=file_metadata,
+                               media_body=media,
+                               fields='id').execute()
 
         # 임시 파일 및 디렉토리 정리
-        for file in image_filenames:
-            if os.path.exists(file):
-                os.remove(file)
-        if os.path.exists(json_file_path):
-            os.remove(json_file_path)
-        if os.path.exists(save_path):
-            shutil.rmtree(save_path)
-        if os.path.exists(zip_path):
-            os.remove(zip_path)
+        shutil.rmtree(self.folder_name)
+        os.remove(self.zip_path)
 
-        print(f'파일 {zip_filename} 이(가) Google Drive에 업로드되었습니다.')
+        print(f'파일 {os.path.basename(self.zip_path)}가 Google Drive에 업로드되었습니다.')
