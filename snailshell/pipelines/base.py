@@ -7,19 +7,20 @@ from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
 from snailshell.tools.uploadlake import UploadLake
+from autosink_data_elt.log.filehandler import JSONFileHandler
 
 
 class BasePipeline:
 
     def __init__(
-        self,
-        frame_loader: FrameLoaderBackend,
-        model_name: str,
-        weight_path: str,
-        use_arduino=False,
-        visualize=False,
-        target_fps=10,
-        # user_id='user_1234',  # 추가: user_id 인자
+            self,
+            frame_loader: FrameLoaderBackend,
+            model_name: str,
+            weight_path: str,
+            use_arduino=False,
+            visualize=False,
+            target_fps=10,
+            user_id='user_1234',  # 추가: user_id 인자
     ):
         if model_name.lower() == "mobilenet":
             model = MobileNetAdapter(weight_path)
@@ -35,10 +36,7 @@ class BasePipeline:
         self.use_arduino = use_arduino
         self.visualize = visualize
         self.target_fps = target_fps
-        self.dishwashing_start = datetime.now().strftime("%Y%m%d")
-        self.interaction_counter = 1
-
-        user_id = 'user_1234'  # 함수 인자 수정 전 임시 user_id 변수 생성.
+        self.user_id = user_id
         self.uploader = UploadLake(user_id)  # 추가: UploadLake 인스턴스 초기화
 
         if self.use_arduino:
@@ -55,14 +53,14 @@ class BasePipeline:
     def run(self):
         self.frame_loader.initialize()
         frame_count = 0
-        save_sec = 3  # interrupt가 입력되면 이전 save_sec 초의 프레임을 저장.
 
         # 추가 학습 데이터를 저장할 최종 list
-        extracted_data = {}
-        # 이미지와 라벨을 임시로 저장할 list
-        run_images = deque(maxlen=self.frame_interval * save_sec)
-        run_labels = deque(maxlen=self.frame_interval * save_sec)
-        timestamps = deque(maxlen=self.frame_interval * save_sec)
+        extracted_data = []
+
+        # 기본 데이터 생성 (버전 2)
+        file_handler = JSONFileHandler(self.user_id)
+        data = file_handler.create_default_data(version=2,
+                                                deque_size=self.frame_interval)
 
         predicted_class = -1
 
@@ -93,22 +91,24 @@ class BasePipeline:
                     )
                     cv2.imshow('Frame', display_frame)
 
-            # 이미지와 라벨을 저장할 deque에 추가
-            run_images.append(frame)
-            run_labels.append(predicted_class)
+            data = file_handler.add_interaction(data,
+                                                image=frame,
+                                                model_output=predicted_class)
 
             # 'r' 버튼 확인
             key = cv2.waitKey(1)
             if key & 0xFF == ord('r'):
                 print('interaction이 감지되었습니다.')
-                # list에 들어 있는 이미지를 JSONFileHandler class의 add_interaction 형태로 가공. 그러나 이미지를 다운로드하거나
+                # Interaction 발동 시 데이터를 저장
+                extracted_data.append(data)
+                data = file_handler.create_default_data(
+                    version=2, deque_size=self.frame_interval)
 
             if key & 0xFF == ord('q'):
                 break
 
-        if upload_imgdata:
-            self.uploader.save_data_and_images(
-                extracted_data, list(run_images))  # 수정: 호출 메소드 변경
-
         self.frame_loader.release()
         cv2.destroyAllWindows()
+
+        if extracted_data:
+            self.uploader.save_data_and_images(extracted_data)
