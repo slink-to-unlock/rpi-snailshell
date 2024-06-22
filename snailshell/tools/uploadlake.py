@@ -17,16 +17,15 @@ class UploadLake(JSONFileHandler):
         self.save_directory_id = '1LX3kYUQJJAqR5S_wvud8TNz428sWi5Yh'
 
     def save_data_and_images(self, extracted_data):
-        image_counter = 1
-        current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
-        temp_folder = os.path.join(self.folder_name, 'temp')
-        os.makedirs(temp_folder, exist_ok=True)
-        json_path = os.path.join(temp_folder, f'{current_time}.json')
+        for index, data in enumerate(extracted_data, start=1):
+            current_time = datetime.now().strftime("%Y%m%d_%H%M%S")
+            folder_name = f"{self.dishwashing_id}_{index}"
+            temp_folder = os.path.join(self.folder_name, folder_name)
+            os.makedirs(temp_folder, exist_ok=True)
+            json_path = os.path.join(temp_folder, f'{current_time}.json')
 
-        interactions = []
-
-        for data in extracted_data:
-            for interaction in data.interaction:
+            image_counter = 1
+            for interaction in data.interactions:
                 # 이미지 파일 이름을 1부터 증가하도록 설정
                 img_path = os.path.join(temp_folder, f"{image_counter}.png")
                 # 이미지 포인터에서 실제 이미지를 가져와서 저장
@@ -35,13 +34,11 @@ class UploadLake(JSONFileHandler):
                 interaction.image = f"{image_counter}.png"
                 image_counter += 1
 
-            interactions.append(data.to_dict())
+            with open(json_path, 'w') as file:
+                json.dump(data.to_dict(), file, indent=4)
 
-        with open(json_path, 'w') as file:
-            json.dump(interactions, file, indent=4)
-
-        # ZIP 파일 생성 및 업로드
-        self.zip_and_upload(temp_folder, current_time)
+            # ZIP 파일 생성 및 업로드
+            self.zip_and_upload(temp_folder, current_time)
 
     def write_file(self, data, path):
         with open(path, 'w') as file:
@@ -53,12 +50,15 @@ class UploadLake(JSONFileHandler):
         self.zip_path = f"{current_time}.zip"
 
         with zipfile.ZipFile(self.zip_path, 'w') as zipf:
-            for file in os.listdir(temp_folder):
-                zipf.write(os.path.join(temp_folder, file), arcname=file)
+            for root, _, files in os.walk(temp_folder):
+                for file in files:
+                    zipf.write(os.path.join(root, file),
+                               arcname=os.path.relpath(
+                                   os.path.join(root, file), temp_folder))
 
-        self.upload_to_drive(temp_folder)
+        self.upload_to_drive()
 
-    def upload_to_drive(self, temp_folder):
+    def upload_to_drive(self):
         SCOPES = ['https://www.googleapis.com/auth/drive.file']
         SERVICE_ACCOUNT_FILE = '/Users/sukcess/WorkSpace/sink/ai-sink-aa94e4cf6758.json'
 
@@ -76,7 +76,7 @@ class UploadLake(JSONFileHandler):
                                fields='id').execute()
 
         # 임시 파일 및 디렉토리 정리
-        shutil.rmtree(temp_folder)
+        shutil.rmtree(self.folder_name)
         os.remove(self.zip_path)
 
         print(f'파일 {os.path.basename(self.zip_path)}가 Google Drive에 업로드되었습니다.')

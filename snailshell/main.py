@@ -1,11 +1,17 @@
-# 내장
 import os
 import argparse
-
-# 프로젝트
+import logging
 from snailshell.pipelines.base import BasePipeline
 from snailshell.frame_loader.opencv_backend import OpenCVBackend
 from snailshell.frame_loader.picamera_backend import PiCameraBackend
+from snailshell.tools.modelupdate import ModelUpdater
+
+# Set up logging
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(asctime)s - %(message)s')
+
+# Define the path for the model weights
+MODEL_WEIGHTS_PATH = '/Users/sukcess/WorkSpace/slink-to-unlock/rpi-snailshell/snailshell/models/model-ai-sink-run'
 
 
 def parse():
@@ -30,8 +36,8 @@ def parse():
     parser.add_argument(
         '--weight_path',
         type=str,
-        required=True,
         help='모델 가중치 파일 경로',
+        default=MODEL_WEIGHTS_PATH,  # Default weight path
     )
     parser.add_argument(
         '--visualize',
@@ -66,19 +72,29 @@ def parse():
     # 프레임 수가 제공되었는지 확인 (선택적)
     if args.target_fps is not None and args.target_fps < 1:
         raise ValueError('`--target_fps` 값은 1 이상의 정수여야 합니다.')
-    if not os.path.exists(args.weight_path):
-        raise FileNotFoundError(f"{args.weight_path} 파일이나 디렉토리를 찾을 수 없습니다.")
 
     # 파이카메라 모듈을 사용하고자 하는 경우, 반드시 카메라를 사용해야 함
     if args.picamera_module_backend:
         if not args.use_camera:
-            raise ValueError('`picamera` 모듈 백엔드를 사용하고자 하는 경우 반드시 카메라를 사용해야 합니다.')
+            raise ValueError(
+                '`picamera` 모듈 백엔드를 사용하고자 하는 경우 반드시 카메라를 사용해야 합니다.')
 
     return args
 
 
 def main():
     args = parse()
+
+    # Perform model update using ModelUpdater
+    model_updater = ModelUpdater(project_name="zzangsu/AIsink-resnet50",
+                                 artifact_name="model-ai-sink-run",
+                                 aliases=['latest', 'success'],
+                                 base_model_path=MODEL_WEIGHTS_PATH,
+                                 api_key=os.getenv('WANDB_API_KEY'))
+    model_updater.update_model()
+
+    # 고정된 가중치 경로 사용
+    args.weight_path = MODEL_WEIGHTS_PATH
 
     # 백엔드 선택
     if args.picamera_module_backend:
