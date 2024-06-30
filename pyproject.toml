@@ -25,6 +25,8 @@ dependencies = [
     "transformers",
     "opencv-python",
     "pyserial",
+    "discord-webhook",
+    "pytz"
 ]
 
 [project.scripts]
