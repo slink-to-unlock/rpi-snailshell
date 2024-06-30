@@ -9,6 +9,26 @@ logging.basicConfig(level=logging.INFO,
 
 
 class ModelUpdater:
+    """
+    Weights and Biases (Wandb)를 사용하여 모델 업데이트를 처리하는 클래스.
+
+    이 클래스는 Wandb와의 인증, 모델 아티팩트 검색, 아티팩트 다운로드 및 
+    로컬 모델 폴더 업데이트를 위한 메서드를 제공합니다.
+
+    Args:
+        project_name (str): Wandb 프로젝트 이름.
+        artifact_name (str): 모델 아티팩트 이름.
+        aliases (list): 모델 아티팩트를 식별하기 위한 별칭 목록.
+        base_model_path (str): 모델 파일이 저장되는 로컬 경로.
+        api_key (str): 인증을 위한 Wandb API 키.
+
+    Method:
+        authenticate_wandb(): 제공된 API 키를 사용하여 Wandb와 인증합니다.
+        get_model_artifact(): Wandb에서 모델 아티팩트를 검색합니다.
+        download_artifact_folder(artifact): 아티팩트를 다운로드합니다.
+        delete_local_model_folder(): 로컬 모델 폴더를 삭제합니다.
+        update_model(): 모델 업데이트를 수행합니다.
+    """
 
     def __init__(self, project_name, artifact_name, aliases, base_model_path,
                  api_key):

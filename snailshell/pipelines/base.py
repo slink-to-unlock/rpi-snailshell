@@ -1,6 +1,4 @@
 import cv2
-from collections import deque
-from datetime import datetime
 
 # 프로젝트
 from snailshell.frame_loader.base import FrameLoaderBackend
@@ -13,14 +11,14 @@ from autosink_data_elt.log.filehandler import JSONFileHandler
 class BasePipeline:
 
     def __init__(
-            self,
-            frame_loader: FrameLoaderBackend,
-            model_name: str,
-            weight_path: str,
-            use_arduino=False,
-            visualize=False,
-            target_fps=10,
-            user_id='user_1234',  # 추가: user_id 인자
+        self,
+        frame_loader: FrameLoaderBackend,
+        model_name: str,
+        weight_path: str,
+        user_id: str,
+        use_arduino=False,
+        visualize=False,
+        target_fps=10,
     ):
         if model_name.lower() == "mobilenet":
             model = MobileNetAdapter(weight_path)
@@ -37,7 +35,7 @@ class BasePipeline:
         self.visualize = visualize
         self.target_fps = target_fps
         self.user_id = user_id
-        self.uploader = UploadLake(user_id)  # 추가: UploadLake 인스턴스 초기화
+        self.uploader = UploadLake(user_id)
 
         if self.use_arduino:
             import serial

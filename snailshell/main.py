@@ -7,8 +7,7 @@ from snailshell.frame_loader.picamera_backend import PiCameraBackend
 from snailshell.tools.modelupdate import ModelUpdater
 
 # Set up logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(asctime)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # Define the path for the model weights
 MODEL_WEIGHTS_PATH = '/Users/sukcess/WorkSpace/slink-to-unlock/rpi-snailshell/snailshell/models/model-ai-sink-run'
@@ -60,6 +59,31 @@ def parse():
         action='store_true',
         help='아두이노 없이도 프로그램을 실행할 수 있습니다. 이 옵션을 사용하면 아두이노 관련 기능이 비활성화됩니다.',
     )
+    parser.add_argument(
+        '--wandb_project',
+        type=str,
+        help='최신 모델이 저장되어 있는 wandb의 project이름을 입력합니다.',
+        default="zzangsu/AIsink-resnet50",
+    )
+    parser.add_argument(
+        '--wandb_artifact',
+        type=str,
+        help='최신 모델이 저장되어 있는 wandb의 project속 artifact 이름을 입력합니다.',
+        default="model-ai-sink-run",
+    )
+    parser.add_argument(
+        '--update_model',
+        type=str,
+        choices=['yes', 'no'],
+        required=True,
+        help='모델 업데이트 수행 여부: yes 또는 no',
+    )
+    parser.add_argument(
+        '--user_id',
+        type=str,
+        help='user id를 입력합니다.',
+        default="user_1234",
+    )
     args = parser.parse_args()
 
     # 라즈베리파이 카메라를 사용하지 않을 경우 비디오 경로가 필수
@@ -85,16 +109,18 @@ def parse():
 def main():
     args = parse()
 
-    # Perform model update using ModelUpdater
-    model_updater = ModelUpdater(project_name="zzangsu/AIsink-resnet50",
-                                 artifact_name="model-ai-sink-run",
-                                 aliases=['latest', 'success'],
-                                 base_model_path=MODEL_WEIGHTS_PATH,
-                                 api_key=os.getenv('WANDB_API_KEY'))
-    model_updater.update_model()
-
-    # 고정된 가중치 경로 사용
-    args.weight_path = MODEL_WEIGHTS_PATH
+    if args.update_model == 'yes':
+        model_updater = ModelUpdater(project_name=args.wandb_project,
+                                     artifact_name=args.wandb_artifact,
+                                     aliases=['latest', 'success'],
+                                     base_model_path=MODEL_WEIGHTS_PATH,
+                                     api_key=os.getenv('WANDB_API_KEY'))
+        model_updater.update_model()
+        logging.info('모델 업데이트가 완료되었습니다.')
+    else:
+        if not os.listdir(MODEL_WEIGHTS_PATH):
+            raise ValueError('모델 경로에 모델 파일이 없습니다. 모델 업데이트가 필요합니다.')
+        logging.info('모델 업데이트를 건너뜁니다.')
 
     # 백엔드 선택
     if args.picamera_module_backend:
@@ -109,10 +135,11 @@ def main():
     pipeline = BasePipeline(
         frame_loader=backend,
         model_name=args.model_name,
-        weight_path=args.weight_path,
+        weight_path=MODEL_WEIGHTS_PATH,
         use_arduino=not args.without_arduino,
         visualize=args.visualize,
         target_fps=args.target_fps,
+        user_id=args.user_id,
     )
     pipeline.run()
 
