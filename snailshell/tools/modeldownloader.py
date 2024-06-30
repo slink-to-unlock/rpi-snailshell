@@ -3,12 +3,8 @@ import wandb
 import logging
 import shutil
 
-# Set up logging
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(levelname)s - %(message)s')
 
-
-class ModelUpdater:
+class ModelDownloader:
     """
     Weights and Biases (Wandb)를 사용하여 모델 업데이트를 처리하는 클래스.
 
@@ -30,8 +26,14 @@ class ModelUpdater:
         update_model(): 모델 업데이트를 수행합니다.
     """
 
-    def __init__(self, project_name, artifact_name, aliases, base_model_path,
-                 api_key):
+    def __init__(
+        self,
+        project_name,
+        artifact_name,
+        aliases,
+        base_model_path,
+        api_key,
+    ):
         self.project_name = project_name
         self.artifact_name = artifact_name
         self.aliases = aliases
@@ -50,16 +52,14 @@ class ModelUpdater:
     def get_model_artifact(self):
         try:
             api = wandb.Api()
-            artifact = api.artifact(
-                f'{self.project_name}/{self.artifact_name}:latest')
+            artifact = api.artifact(f'{self.project_name}/{self.artifact_name}:latest')
             artifact_aliases = artifact.aliases
             if all(alias in artifact_aliases for alias in self.aliases):
                 logging.info(
                     f"Found model artifact: {artifact.name} with aliases {artifact_aliases}"
                 )
                 return artifact
-            logging.warning(
-                "No model artifact with the specified aliases found.")
+            logging.warning("No model artifact with the specified aliases found.")
             return None
         except Exception as e:
             logging.error(f"Failed to get model from Wandb: {e}")
@@ -78,12 +78,9 @@ class ModelUpdater:
         try:
             if os.path.exists(self.base_model_path):
                 shutil.rmtree(self.base_model_path)
-                logging.info(
-                    f"Deleted local model folder: {self.base_model_path}")
+                logging.info(f"Deleted local model folder: {self.base_model_path}")
             else:
-                logging.warning(
-                    f"Local model folder {self.base_model_path} does not exist."
-                )
+                logging.warning(f"Local model folder {self.base_model_path} does not exist.")
         except Exception as e:
             logging.error(f"Failed to delete local model folder: {e}")
             raise
@@ -94,10 +91,6 @@ class ModelUpdater:
         if model_artifact:
             self.delete_local_model_folder()
             self.download_artifact_folder(model_artifact)
-            logging.info(
-                f"Downloaded and updated the model folder to {self.base_model_path}."
-            )
+            logging.info(f"Downloaded and updated the model folder to {self.base_model_path}.")
         else:
-            logging.info(
-                "No matching model found in Wandb. Keeping the local model folder."
-            )
+            logging.info("No matching model found in Wandb. Keeping the local model folder.")

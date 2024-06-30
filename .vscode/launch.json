@@ -14,7 +14,10 @@
                 "--video_path", "examples/test_video.mov",
                 "--without_arduino",
                 "--visualize",
-                "--update_model", "yes",
+                "--download_model",
+                "--weight_path", "snailshell/models/model-ai-sink-run",
+                "--wandb_project", "zzangsu/AIsink-resnet50",
+                "--wandb_artifact", "model-ai-sink-run"
             ]
         },
         {

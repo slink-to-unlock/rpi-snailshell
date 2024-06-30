@@ -4,13 +4,10 @@ import logging
 from snailshell.pipelines.base import BasePipeline
 from snailshell.frame_loader.opencv_backend import OpenCVBackend
 from snailshell.frame_loader.picamera_backend import PiCameraBackend
-from snailshell.tools.modelupdate import ModelUpdater
+from snailshell.tools.modeldownloader import ModelDownloader
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
-
-# Define the path for the model weights
-MODEL_WEIGHTS_PATH = '/Users/sukcess/WorkSpace/slink-to-unlock/rpi-snailshell/snailshell/models/model-ai-sink-run'
 
 
 def parse():
@@ -35,8 +32,7 @@ def parse():
     parser.add_argument(
         '--weight_path',
         type=str,
-        help='모델 가중치 파일 경로',
-        default=MODEL_WEIGHTS_PATH,  # Default weight path
+        help='모델 가중치 파일 경로. 지정하지 않으면, 모델을 다운로드 하는 경우 기본 경로를 사용합니다.',
     )
     parser.add_argument(
         '--visualize',
@@ -62,21 +58,19 @@ def parse():
     parser.add_argument(
         '--wandb_project',
         type=str,
-        help='최신 모델이 저장되어 있는 wandb의 project이름을 입력합니다.',
+        help='최신 모델이 저장되어 있는 wandb의 project이름을 입력합니다. 모델 다운로드를 수행하려면 필수입니다.',
         default="zzangsu/AIsink-resnet50",
     )
     parser.add_argument(
         '--wandb_artifact',
         type=str,
-        help='최신 모델이 저장되어 있는 wandb의 project속 artifact 이름을 입력합니다.',
+        help='최신 모델이 저장되어 있는 wandb의 project속 artifact 이름을 입력합니다. 모델 다운로드를 수행하려면 필수입니다.',
         default="model-ai-sink-run",
     )
     parser.add_argument(
-        '--update_model',
-        type=str,
-        choices=['yes', 'no'],
-        required=True,
-        help='모델 업데이트 수행 여부: yes 또는 no',
+        '--download_model',
+        action='store_true',
+        help='모델 다운로드 수행 여부. 지정하면 모델을 다운로드하고, 지정하지 않으면 기존 모델 가중치 파일을 사용합니다.',
     )
     parser.add_argument(
         '--user_id',
@@ -102,25 +96,35 @@ def parse():
         if not args.use_camera:
             raise ValueError('`picamera` 모듈 백엔드를 사용하고자 하는 경우 반드시 카메라를 사용해야 합니다.')
 
+    # 모델 다운로드 시 wandb 정보가 필요
+    if args.download_model:
+        if not args.wandb_project or not args.wandb_artifact:
+            raise ValueError('모델 다운로드를 수행하려면 `--wandb_project` 및 `--wandb_artifact` 를 지정해야 합니다.')
+        if not args.weight_path:
+            args.weight_path = os.path.join('.', '.cache')
+    else:
+        if not args.weight_path:
+            raise ValueError('모델 경로를 지정해야 합니다.')
+
     return args
 
 
 def main():
     args = parse()
 
-    if args.update_model == 'yes':
-        model_updater = ModelUpdater(
+    if args.download_model:
+        model_updater = ModelDownloader(
             project_name=args.wandb_project,
             artifact_name=args.wandb_artifact,
             aliases=['latest', 'success'],
-            base_model_path=MODEL_WEIGHTS_PATH,
+            base_model_path=args.weight_path,
             api_key=os.getenv('WANDB_API_KEY')
         )
         model_updater.update_model()
         logging.info('모델 업데이트가 완료되었습니다.')
     else:
-        if not os.listdir(MODEL_WEIGHTS_PATH):
-            raise ValueError('모델 경로에 모델 파일이 없습니다. 모델 업데이트가 필요합니다.')
+        if not os.listdir(args.weight_path):
+            raise ValueError('모델 경로에 모델 파일이 없습니다. 모델 다운로드가 필요합니다.')
         logging.info('모델 업데이트를 건너뜁니다.')
 
     # 백엔드 선택
@@ -136,7 +140,7 @@ def main():
     pipeline = BasePipeline(
         frame_loader=backend,
         model_name=args.model_name,
-        weight_path=MODEL_WEIGHTS_PATH,
+        weight_path=args.weight_path,
         use_arduino=not args.without_arduino,
         visualize=args.visualize,
         target_fps=args.target_fps,

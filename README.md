@@ -30,11 +30,12 @@ sudo reboot
 
 ### 환경 변수 설정
 
-모델 업데이트에 사용될 wandb와 datalake로 사용될 google drive의 api키를 환경 변수로 설정하세요.
+모델 업데이트에 사용될 wandb와 datalake로 사용될 google drive folder의 고유 ID, google drive의 api키를 환경 변수로 설정하세요.
 
 ```bash
 export WANDB_API_KEY='your_wandb_api_key'
-export GOOGLE_DRIVE_API_KEY='your_google_drive_api_key'
+export DRIVE_API_KEY_PATH='your_google_drive_api_key'ㄴ
+export DRIVE_FOLDER_ID='your_google_drive_folder_id'
 ```
 
 ## 개발 문서

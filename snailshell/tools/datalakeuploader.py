@@ -10,11 +10,11 @@ from google.oauth2 import service_account
 from autosink_data_elt.log.filehandler import JSONFileHandler
 
 
-class UploadLake(JSONFileHandler):
+class DatalakeUploader(JSONFileHandler):
 
     def __init__(self, user_id, timezone='Asia/Seoul'):
         super().__init__(user_id, timezone)
-        self.save_directory_id = os.getenv('DRIVE_API_KEY')
+        self.save_directory_id = os.getenv('DRIVE_FOLDER_ID')
 
     def save_data_and_images(self, extracted_data):
         for index, data in enumerate(extracted_data, start=1):
@@ -61,7 +61,7 @@ class UploadLake(JSONFileHandler):
 
     def upload_to_drive(self):
         SCOPES = ['https://www.googleapis.com/auth/drive.file']
-        SERVICE_ACCOUNT_FILE = '/Users/sukcess/WorkSpace/sink/ai-sink-aa94e4cf6758.json'
+        SERVICE_ACCOUNT_FILE = os.getenv('DRIVE_API_KEY_PATH')
 
         credentials = service_account.Credentials.from_service_account_file(
             SERVICE_ACCOUNT_FILE, scopes=SCOPES

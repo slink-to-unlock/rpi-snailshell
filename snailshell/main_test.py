@@ -1,10 +1,7 @@
-# 내장
 import unittest
 import argparse
 from pathlib import Path
 from unittest.mock import patch, MagicMock
-
-# 프로젝트
 from snailshell.main import parse, main
 
 
@@ -21,9 +18,9 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=None,
             picamera_module_backend=None,
-            update_model='no',
-            wandb_project=None,
-            wandb_artifact=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
             without_arduino=None,
             user_id='user_1234'
         )
@@ -31,6 +28,9 @@ class TestArgumentParsing(unittest.TestCase):
         self.assertTrue(args.use_camera)
         self.assertEqual(args.model_name, 'model1')
         self.assertTrue(args.visualize)
+        self.assertTrue(args.download_model)
+        self.assertEqual(args.wandb_project, 'zzangsu/AIsink-resnet50')
+        self.assertEqual(args.wandb_artifact, 'model-ai-sink-run')
 
     @patch('argparse.ArgumentParser.parse_args')
     def test_normal_execution_with_video_path(self, mock_args):
@@ -43,9 +43,9 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=False,
             target_fps=None,
             picamera_module_backend=None,
-            update_model='no',
-            wandb_project=None,
-            wandb_artifact=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
             without_arduino=None,
             user_id='user_1234'
         )
@@ -54,6 +54,9 @@ class TestArgumentParsing(unittest.TestCase):
         self.assertEqual(args.video_path, Path('snailshell/main.py'))
         self.assertEqual(args.model_name, 'model2')
         self.assertFalse(args.visualize)
+        self.assertTrue(args.download_model)
+        self.assertEqual(args.wandb_project, 'zzangsu/AIsink-resnet50')
+        self.assertEqual(args.wandb_artifact, 'model-ai-sink-run')
 
     @patch('argparse.ArgumentParser.parse_args')
     def test_exception_without_video_path(self, mock_args):
@@ -66,9 +69,9 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=None,
             picamera_module_backend=None,
-            update_model='no',
-            wandb_project=None,
-            wandb_artifact=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
             without_arduino=None,
             user_id='user_1234'
         )
@@ -86,9 +89,9 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=0,
             picamera_module_backend=None,
-            update_model='no',
-            wandb_project=None,
-            wandb_artifact=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
             without_arduino=None,
             user_id='user_1234'
         )
@@ -106,9 +109,9 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=30,
             picamera_module_backend=True,
-            update_model='no',
-            wandb_project=None,
-            wandb_artifact=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
             without_arduino=None,
             user_id='user_1234'
         )
@@ -127,9 +130,9 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=30,
             picamera_module_backend=None,
-            update_model='no',
-            wandb_project=None,
-            wandb_artifact=None,
+            download_model=False,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
             without_arduino=None,
             user_id='user_1234'
         )

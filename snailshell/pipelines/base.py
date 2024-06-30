@@ -4,7 +4,7 @@ import cv2
 from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
-from snailshell.tools.uploadlake import UploadLake
+from snailshell.tools.datalakeuploader import DatalakeUploader
 from autosink_data_elt.log.filehandler import JSONFileHandler
 
 
@@ -33,7 +33,7 @@ class BasePipeline:
         self.visualize = visualize
         self.target_fps = target_fps
         self.user_id = user_id
-        self.uploader = UploadLake(user_id)
+        self.uploader = DatalakeUploader(user_id)
 
         if self.use_arduino:
             import serial
