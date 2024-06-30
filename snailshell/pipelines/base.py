@@ -1,10 +1,11 @@
-# 서드파티
 import cv2
 
 # 프로젝트
 from snailshell.frame_loader.base import FrameLoaderBackend
 from snailshell.model_loader.resnet import ResNetAdapter
 from snailshell.model_loader.mobilenet import MobileNetAdapter
+from snailshell.tools.datalakeuploader import DatalakeUploader
+from autosink_data_elt.log.filehandler import JSONFileHandler
 
 
 class BasePipeline:
@@ -14,6 +15,7 @@ class BasePipeline:
         frame_loader: FrameLoaderBackend,
         model_name: str,
         weight_path: str,
+        user_id: str,
         use_arduino=False,
         visualize=False,
         target_fps=10,
@@ -30,6 +32,9 @@ class BasePipeline:
         self.use_arduino = use_arduino
         self.visualize = visualize
         self.target_fps = target_fps
+        self.user_id = user_id
+        self.uploader = DatalakeUploader(user_id)
+
         if self.use_arduino:
             import serial
             self.serial = serial.Serial('/dev/ttyACM0', 9600)
@@ -44,6 +49,16 @@ class BasePipeline:
     def run(self):
         self.frame_loader.initialize()
         frame_count = 0
+
+        # 추가 학습 데이터를 저장할 최종 list
+        extracted_data = []
+
+        # 기본 데이터 생성 (버전 2)
+        file_handler = JSONFileHandler(self.user_id)
+        data = file_handler.create_default_data(version=2, deque_size=self.frame_interval)
+
+        predicted_class = -1
+
         while True:
             frame = self.frame_loader.get_frame()
             if frame is None:
@@ -71,8 +86,21 @@ class BasePipeline:
                     )
                     cv2.imshow('Frame', display_frame)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
+            data = file_handler.add_interaction(data, image=frame, model_output=predicted_class)
+
+            # 'r' 버튼 확인
+            key = cv2.waitKey(1)
+            if key & 0xFF == ord('r'):
+                print('interaction이 감지되었습니다.')
+                # Interaction 발동 시 데이터를 저장
+                extracted_data.append(data)
+                data = file_handler.create_default_data(version=2, deque_size=self.frame_interval)
+
+            if key & 0xFF == ord('q'):
                 break
 
         self.frame_loader.release()
         cv2.destroyAllWindows()
+
+        if extracted_data:
+            self.uploader.save_data_and_images(extracted_data)
