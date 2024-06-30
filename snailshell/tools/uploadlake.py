@@ -14,7 +14,7 @@ class UploadLake(JSONFileHandler):
 
     def __init__(self, user_id, timezone='Asia/Seoul'):
         super().__init__(user_id, timezone)
-        self.save_directory_id = '1LX3kYUQJJAqR5S_wvud8TNz428sWi5Yh'
+        self.save_directory_id = os.getenv('DRIVE_API_KEY')
 
     def save_data_and_images(self, extracted_data):
         for index, data in enumerate(extracted_data, start=1):
@@ -52,9 +52,10 @@ class UploadLake(JSONFileHandler):
         with zipfile.ZipFile(self.zip_path, 'w') as zipf:
             for root, _, files in os.walk(temp_folder):
                 for file in files:
-                    zipf.write(os.path.join(root, file),
-                               arcname=os.path.relpath(
-                                   os.path.join(root, file), temp_folder))
+                    zipf.write(
+                        os.path.join(root, file),
+                        arcname=os.path.relpath(os.path.join(root, file), temp_folder)
+                    )
 
         self.upload_to_drive()
 
@@ -63,7 +64,8 @@ class UploadLake(JSONFileHandler):
         SERVICE_ACCOUNT_FILE = '/Users/sukcess/WorkSpace/sink/ai-sink-aa94e4cf6758.json'
 
         credentials = service_account.Credentials.from_service_account_file(
-            SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+            SERVICE_ACCOUNT_FILE, scopes=SCOPES
+        )
         service = build('drive', 'v3', credentials=credentials)
 
         file_metadata = {
@@ -71,9 +73,7 @@ class UploadLake(JSONFileHandler):
             'parents': [self.save_directory_id]
         }
         media = MediaFileUpload(self.zip_path, mimetype='application/zip')
-        service.files().create(body=file_metadata,
-                               media_body=media,
-                               fields='id').execute()
+        service.files().create(body=file_metadata, media_body=media, fields='id').execute()
 
         # 임시 파일 및 디렉토리 정리
         shutil.rmtree(self.folder_name)

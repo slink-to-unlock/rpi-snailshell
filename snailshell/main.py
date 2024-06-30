@@ -100,8 +100,7 @@ def parse():
     # 파이카메라 모듈을 사용하고자 하는 경우, 반드시 카메라를 사용해야 함
     if args.picamera_module_backend:
         if not args.use_camera:
-            raise ValueError(
-                '`picamera` 모듈 백엔드를 사용하고자 하는 경우 반드시 카메라를 사용해야 합니다.')
+            raise ValueError('`picamera` 모듈 백엔드를 사용하고자 하는 경우 반드시 카메라를 사용해야 합니다.')
 
     return args
 
@@ -110,11 +109,13 @@ def main():
     args = parse()
 
     if args.update_model == 'yes':
-        model_updater = ModelUpdater(project_name=args.wandb_project,
-                                     artifact_name=args.wandb_artifact,
-                                     aliases=['latest', 'success'],
-                                     base_model_path=MODEL_WEIGHTS_PATH,
-                                     api_key=os.getenv('WANDB_API_KEY'))
+        model_updater = ModelUpdater(
+            project_name=args.wandb_project,
+            artifact_name=args.wandb_artifact,
+            aliases=['latest', 'success'],
+            base_model_path=MODEL_WEIGHTS_PATH,
+            api_key=os.getenv('WANDB_API_KEY')
+        )
         model_updater.update_model()
         logging.info('모델 업데이트가 완료되었습니다.')
     else:

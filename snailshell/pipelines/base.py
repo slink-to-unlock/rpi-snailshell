@@ -25,9 +25,7 @@ class BasePipeline:
         elif model_name.lower() == "resnet":
             model = ResNetAdapter(weight_path)
         else:
-            raise ValueError(
-                "Unsupported model name. Please choose 'mobilenet' or 'resnet'."
-            )
+            raise ValueError("Unsupported model name. Please choose 'mobilenet' or 'resnet'.")
 
         self.frame_loader = frame_loader
         self.model = model
@@ -57,8 +55,7 @@ class BasePipeline:
 
         # 기본 데이터 생성 (버전 2)
         file_handler = JSONFileHandler(self.user_id)
-        data = file_handler.create_default_data(version=2,
-                                                deque_size=self.frame_interval)
+        data = file_handler.create_default_data(version=2, deque_size=self.frame_interval)
 
         predicted_class = -1
 
@@ -89,9 +86,7 @@ class BasePipeline:
                     )
                     cv2.imshow('Frame', display_frame)
 
-            data = file_handler.add_interaction(data,
-                                                image=frame,
-                                                model_output=predicted_class)
+            data = file_handler.add_interaction(data, image=frame, model_output=predicted_class)
 
             # 'r' 버튼 확인
             key = cv2.waitKey(1)
@@ -99,8 +94,7 @@ class BasePipeline:
                 print('interaction이 감지되었습니다.')
                 # Interaction 발동 시 데이터를 저장
                 extracted_data.append(data)
-                data = file_handler.create_default_data(
-                    version=2, deque_size=self.frame_interval)
+                data = file_handler.create_default_data(version=2, deque_size=self.frame_interval)
 
             if key & 0xFF == ord('q'):
                 break

@@ -10,11 +10,11 @@
             "request": "launch",
             "module": "snailshell.main",
             "args": [
-                "--model_name", "mobilenet",
+                "--model_name", "resnet",
                 "--video_path", "examples/test_video.mov",
-                "--weight_path", "examples/mobilenet-v2.pth",
                 "--without_arduino",
-                "--visualize"
+                "--visualize",
+                "--update_model", "yes",
             ]
         },
         {
