@@ -21,6 +21,21 @@
             ]
         },
         {
+            "name": "test with video none 'weith_path' ver",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "snailshell.main",
+            "args": [
+                "--model_name", "resnet",
+                "--video_path", "examples/test_video.mov",
+                "--without_arduino",
+                "--visualize",
+                "--download_model",
+                "--wandb_project", "zzangsu/AIsink-resnet50",
+                "--wandb_artifact", "model-ai-sink-run"
+            ]
+        },
+        {
             "name": "test with webcam",
             "type": "debugpy",
             "request": "launch",
