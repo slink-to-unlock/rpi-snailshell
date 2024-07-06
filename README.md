@@ -34,8 +34,9 @@ sudo reboot
 
 ```bash
 export WANDB_API_KEY='your_wandb_api_key'
-export DRIVE_API_KEY_PATH='your_google_drive_api_key'ㄴ
+export DRIVE_API_KEY_PATH='your_google_drive_api_key'
 export DRIVE_FOLDER_ID='your_google_drive_folder_id'
+export DISCORD_WEBHOOK_URL='your_discord_webhook_url'
 ```
 
 ## 개발 문서
