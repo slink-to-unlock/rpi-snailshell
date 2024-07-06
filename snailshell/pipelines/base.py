@@ -55,9 +55,14 @@ class BasePipeline:
 
         # 기본 데이터 생성 (버전 2)
         file_handler = JSONFileHandler(self.user_id)
-        data = file_handler.create_default_data(version=2, deque_size=self.frame_interval)
+        active_feedback_data = file_handler.create_default_data(
+            version=2, deque_size=self.frame_interval
+        )
 
         predicted_class = -1
+        previous_predicted_class = -1  # 초기화 추가
+        magnetic_status = 0  # magnetic_status 변수 초기값
+        passive_feedback_data = None  # 초기화 추가
 
         while True:
             frame = self.frame_loader.get_frame()
@@ -69,6 +74,7 @@ class BasePipeline:
             if frame_count == self.frame_interval:
                 frame_count = 0
 
+                previous_predicted_class = predicted_class
                 predicted_class = self.model.predict(frame)
                 if self.use_arduino:
                     self.serial.write(str(predicted_class).encode())
@@ -86,15 +92,55 @@ class BasePipeline:
                     )
                     cv2.imshow('Frame', display_frame)
 
-            data = file_handler.add_interaction(data, image=frame, model_output=predicted_class)
+            # 현재 magnetic_status 값과 predicted_class 값을 add_interaction 함수에 전달
+            active_feedback_data = file_handler.add_interaction(
+                active_feedback_data,
+                image=frame,
+                model_output=predicted_class,
+                magnetic_status=magnetic_status,
+            )
+
+            # magnetic_status이 0이고 predicted_class가 1인 구간 탐지
+            if magnetic_status == 0 and predicted_class == 1 and previous_predicted_class == 0:
+                print('magnetic_status 값이 0이고 predicted_class 값이 1인 구간이 시작되었습니다.')
+                # 구간만 저장하면 되므로 list 형식인 version 1로 선언.
+                passive_feedback_data = file_handler.create_default_data(version=1)
+            elif magnetic_status == 0 and predicted_class == 1 and previous_predicted_class == 1:
+                if passive_feedback_data is not None:  # None 체크 추가
+                    passive_feedback_data = file_handler.add_interaction(
+                        passive_feedback_data,
+                        image=frame,
+                        model_output=predicted_class,
+                        magnetic_status=magnetic_status,
+                    )
+            elif magnetic_status == 0 and predicted_class == 0 and previous_predicted_class == 1:
+                if passive_feedback_data is not None:  # None 체크 추가
+                    extracted_data.append(passive_feedback_data)
+                    print('magnetic_status 값이 0이고 predicted_class 값이 1인 구간이 종료되었습니다.')
+                passive_feedback_data = None  # 구간 종료 후 초기화
 
             # 'r' 버튼 확인
             key = cv2.waitKey(1)
             if key & 0xFF == ord('r'):
                 print('interaction이 감지되었습니다.')
                 # Interaction 발동 시 데이터를 저장
-                extracted_data.append(data)
-                data = file_handler.create_default_data(version=2, deque_size=self.frame_interval)
+                extracted_data.append(active_feedback_data)
+                active_feedback_data = file_handler.create_default_data(
+                    version=2, deque_size=self.frame_interval
+                )
+
+            if key & 0xFF == ord('0'):
+                magnetic_status = 0
+                if predicted_class == 1:
+                    extracted_data.append(active_feedback_data)
+                    active_feedback_data = file_handler.create_default_data(
+                        version=2, deque_size=self.frame_interval
+                    )
+                print('magnetic_status 값이 0으로 변경되었습니다.')
+
+            if key & 0xFF == ord('1'):
+                magnetic_status = 1
+                print('magnetic_status 값이 1으로 변경되었습니다.')
 
             if key & 0xFF == ord('q'):
                 break
