@@ -25,8 +25,10 @@ dependencies = [
     "transformers",
     "opencv-python",
     "pyserial",
+    "pytz",
+    "autosink-data-elt",
+    "google-api-python-client",
     "discord-webhook",
-    "pytz"
 ]
 
 [project.scripts]
