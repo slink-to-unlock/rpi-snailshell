@@ -1,11 +1,8 @@
-# 내장
 import unittest
 import argparse
 from pathlib import Path
-from unittest.mock import patch
-
-# 프로젝트
-from snailshell.main import parse
+from unittest.mock import patch, MagicMock
+from snailshell.main import parse, main
 
 
 class TestArgumentParsing(unittest.TestCase):
@@ -21,11 +18,19 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=None,
             picamera_module_backend=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
+            without_arduino=None,
+            user_id='user_1234'
         )
         args = parse()
         self.assertTrue(args.use_camera)
         self.assertEqual(args.model_name, 'model1')
         self.assertTrue(args.visualize)
+        self.assertTrue(args.download_model)
+        self.assertEqual(args.wandb_project, 'zzangsu/AIsink-resnet50')
+        self.assertEqual(args.wandb_artifact, 'model-ai-sink-run')
 
     @patch('argparse.ArgumentParser.parse_args')
     def test_normal_execution_with_video_path(self, mock_args):
@@ -38,12 +43,20 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=False,
             target_fps=None,
             picamera_module_backend=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
+            without_arduino=None,
+            user_id='user_1234'
         )
         args = parse()
         self.assertFalse(args.use_camera)
         self.assertEqual(args.video_path, Path('snailshell/main.py'))
         self.assertEqual(args.model_name, 'model2')
         self.assertFalse(args.visualize)
+        self.assertTrue(args.download_model)
+        self.assertEqual(args.wandb_project, 'zzangsu/AIsink-resnet50')
+        self.assertEqual(args.wandb_artifact, 'model-ai-sink-run')
 
     @patch('argparse.ArgumentParser.parse_args')
     def test_exception_without_video_path(self, mock_args):
@@ -56,6 +69,11 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=None,
             picamera_module_backend=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
+            without_arduino=None,
+            user_id='user_1234'
         )
         with self.assertRaises(ValueError):
             parse()
@@ -71,23 +89,13 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=0,
             picamera_module_backend=None,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
+            without_arduino=None,
+            user_id='user_1234'
         )
         with self.assertRaises(ValueError):
-            parse()
-
-    @patch('argparse.ArgumentParser.parse_args')
-    def test_exception_with_nonexistent_weight_path(self, mock_args):
-        # 가중치 파일 경로가 잘못된 경로일 때 FileNotFoundError 가 발생하는가
-        mock_args.return_value = argparse.Namespace(
-            use_camera=False,
-            video_path=Path('snailshell/main.py'),
-            weight_path=Path('nonexistent/path/to/weights.pth'),
-            model_name='model_name',
-            visualize=True,
-            target_fps=30,
-            picamera_module_backend=None,
-        )
-        with self.assertRaises(FileNotFoundError):
             parse()
 
     @patch('argparse.ArgumentParser.parse_args')
@@ -101,9 +109,35 @@ class TestArgumentParsing(unittest.TestCase):
             visualize=True,
             target_fps=30,
             picamera_module_backend=True,
+            download_model=True,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
+            without_arduino=None,
+            user_id='user_1234'
         )
         with self.assertRaises(ValueError):
             parse()
+
+    @patch('argparse.ArgumentParser.parse_args')
+    @patch('os.listdir', MagicMock(return_value=[]))
+    def test_exception_when_model_path_empty(self, mock_args):
+        # 모델 경로에 파일이 없을 때 ValueError가 발생하는가
+        mock_args.return_value = argparse.Namespace(
+            use_camera=True,
+            video_path=None,
+            weight_path=Path('snailshell/main.py'),
+            model_name='model_name',
+            visualize=True,
+            target_fps=30,
+            picamera_module_backend=None,
+            download_model=False,
+            wandb_project='zzangsu/AIsink-resnet50',
+            wandb_artifact='model-ai-sink-run',
+            without_arduino=None,
+            user_id='user_1234'
+        )
+        with self.assertRaises(ValueError):
+            main()
 
 
 if __name__ == '__main__':

@@ -28,6 +28,7 @@ dependencies = [
     "pytz",
     "autosink-data-elt",
     "google-api-python-client",
+    "discord-webhook",
 ]
 
 [project.scripts]
