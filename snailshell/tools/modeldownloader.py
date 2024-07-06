@@ -42,7 +42,6 @@ class ModelDownloader:
 
     def authenticate_wandb(self):
         try:
-            os.environ["WANDB_API_KEY"] = self.api_key
             wandb.login(key=self.api_key)
             logging.info("Successfully authenticated with Wandb.")
         except Exception as e:
