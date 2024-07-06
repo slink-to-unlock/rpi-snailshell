@@ -103,7 +103,7 @@ class BasePipeline:
 
         predicted_class = -1
         previous_predicted_class = -1  # 초기화 추가
-        magnetic_status = 0  # magnetic_status 변수 초기값
+        magnetic_status = 1  # magnetic_status 변수 초기값
         passive_feedback_data = None  # 초기화 추가
 
         while True:
