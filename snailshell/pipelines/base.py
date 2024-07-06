@@ -1,4 +1,5 @@
 import cv2
+import time
 
 # 프로젝트
 from snailshell.frame_loader.base import FrameLoaderBackend
@@ -128,6 +129,14 @@ class BasePipeline:
                     active_feedback_data = file_handler.create_default_data(
                         version=2, deque_size=self.frame_interval
                     )
+
+                    # predicted_class = 1 추가
+                    predicted_class = 1
+                    if self.use_arduino:
+                        self.serial.write(str(predicted_class).encode())
+
+                    # 3초 동안 지연
+                    time.sleep(3)
 
                 if key & 0xFF == ord('0'):
                     magnetic_status = 0
