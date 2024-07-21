@@ -120,7 +120,7 @@ def main():
             base_model_path=args.weight_path,
             api_key=os.getenv('WANDB_API_KEY')
         )
-        model_updater.update_model()
+        model_version_info = model_updater.update_model()
         logging.info('모델 업데이트가 완료되었습니다.')
     else:
         if not os.listdir(args.weight_path):
@@ -145,6 +145,7 @@ def main():
         visualize=args.visualize,
         target_fps=args.target_fps,
         user_id=args.user_id,
+        model_version_info=model_version_info,
     )
     pipeline.run()
 

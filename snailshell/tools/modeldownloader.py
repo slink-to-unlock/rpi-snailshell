@@ -84,7 +84,9 @@ class ModelDownloader:
             logging.error(f"Failed to delete local model folder: {e}")
             raise
 
-    def update_model(self):
+    def update_model(self) -> str:
+        """ 모델을 다운로드받고 버전을 리턴합니다.
+        """
         self.authenticate_wandb()
         model_artifact = self.get_model_artifact()
         if model_artifact:
@@ -93,3 +95,4 @@ class ModelDownloader:
             logging.info(f"Downloaded and updated the model folder to {self.base_model_path}.")
         else:
             logging.info("No matching model found in Wandb. Keeping the local model folder.")
+        return [alias for alias in model_artifact.aliases if alias.startswith('v')][0]
