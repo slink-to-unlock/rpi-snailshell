@@ -73,6 +73,12 @@ def parse():
         help='모델 다운로드 수행 여부. 지정하면 모델을 다운로드하고, 지정하지 않으면 기존 모델 가중치 파일을 사용합니다.',
     )
     parser.add_argument(
+        '--not_upload_feedback',
+        action='store_true',
+        help='사용자 피드백 데이터 업로드 여부. 지정하면 데이터를 업로드하지 않습니다.',
+        default=False,
+    )
+    parser.add_argument(
         '--user_id',
         type=str,
         help='user id를 입력합니다.',
@@ -123,8 +129,8 @@ def main():
         model_updater.update_model()
         logging.info('모델 업데이트가 완료되었습니다.')
     else:
-        if not os.listdir(args.weight_path):
-            raise ValueError('모델 경로에 모델 파일이 없습니다. 모델 다운로드가 필요합니다.')
+        if not os.path.exists(args.weight_path):
+            raise ValueError('모델이 존재하지 않습니다.')
         logging.info('모델 업데이트를 건너뜁니다.')
 
     # 백엔드 선택
@@ -145,6 +151,7 @@ def main():
         visualize=args.visualize,
         target_fps=args.target_fps,
         user_id=args.user_id,
+        do_upload_feedback=(not args.not_upload_feedback),
     )
     pipeline.run()
 

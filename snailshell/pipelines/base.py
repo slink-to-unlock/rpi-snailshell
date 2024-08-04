@@ -27,6 +27,7 @@ class BasePipeline:
         use_arduino=False,
         visualize=False,
         target_fps=10,
+        do_upload_feedback=True,
     ):
         if model_name.lower() == "mobilenet":
             model = MobileNetAdapter(weight_path)
@@ -42,7 +43,9 @@ class BasePipeline:
         self.target_fps = target_fps
         self.discord_webhook_url = os.getenv('DISCORD_WEBHOOK_URL', '')
         self.user_id = user_id
-        self.uploader = DatalakeUploader(user_id)
+        self.do_upload_feedback = do_upload_feedback
+        if self.do_upload_feedback:
+            self.uploader = DatalakeUploader(user_id)
 
         if self.use_arduino:
             import serial
@@ -206,5 +209,5 @@ class BasePipeline:
             'hello world',  # FIXME: 적절한 값을 가져올 것
         )
 
-        if extracted_data:
+        if extracted_data and self.do_upload_feedback:
             self.uploader.save_data_and_images(extracted_data)
