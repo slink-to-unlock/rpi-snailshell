@@ -163,6 +163,21 @@ python3 -m snailshell.main \
 
 데이터를 저장하고 업로드하는 형식에 관해서는 [다음 저장소](https://github.com/slink-to-unlock/autosink-data-elt)를 참고하세요.
 
+<table>
+<thead align="center">
+  <tr>
+    <th>재학습 전</th>
+    <th>재학습 후</th>
+  </tr>
+</thead>
+<tbody align="center">
+  <tr>
+    <td><img src="https://github.com/slink-to-unlock/.github/blob/main/demo-before-retraining.gif?raw=true"></td></th>
+    <td><img src="https://github.com/slink-to-unlock/.github/blob/main/demo-after-retraining.gif?raw=true"></td>
+  </tr>
+</tbody>
+</table>
+
 ### 아두이노 소스코드
 
 아두이노는 다음 소스코드를 사용하여 컴파일합니다.
