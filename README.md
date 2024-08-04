@@ -4,7 +4,7 @@
 
 ## 이 저장소가 다루는 내용
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/7de0432d-a3f3-43bf-9069-8e1e69ab40d9/028a5db7-7350-4555-9848-c733f84d0f78/Untitled.png)
+![Untitled](docs/pipeline-snailshell.png)
 
 이 저장소는 전체 MLOps 파이프라인 중 싱크대를 제어하는 라즈베리파이의 사용 부분을 다룹니다. 이 저장소에 포함되어 있는 기능은 다음과 같습니다.
 
@@ -16,6 +16,17 @@
 이 외 전체 파이프라인 기능에 관해서는 [다음 저장소](https://github.com/slink-to-unlock/autosink-orchestra)를 참고하세요.
 
 ## 목차
+
+- [설치](#설치)
+- [빠른 시작](#빠른-시작)
+- [라즈베리파이로 시작](#라즈베리파이로-시작)
+  - [라즈베리파이 기본 세팅](#라즈베리파이-기본-세팅)
+  - [라즈베리파이 환경 변수 설정](#라즈베리파이-환경-변수-설정)
+  - [실행 명령 예시](#실행-명령-예시)
+- [런타임 사용법](#런타임-사용법)
+- [데이터레이크 업로드](#데이터레이크-업로드)
+- [아두이노 소스코드](#아두이노-소스코드)
+- [컨트리뷰션](#컨트리뷰션)
 
 ## 설치
 
@@ -45,7 +56,7 @@ python3 -m snailshell.main \
 
 ## 라즈베리파이로 시작
 
-![Untitled](https://prod-files-secure.s3.us-west-2.amazonaws.com/7de0432d-a3f3-43bf-9069-8e1e69ab40d9/1e2be2ea-374d-4f7e-90a1-e8f00c35201e/Untitled.png)
+![Untitled](docs/blueprint.png)
 
 본격적으로 라즈베리파이에서 실행하고자 한다면, 필수적으로 다음 하드웨어들을 준비해야 합니다.
 
