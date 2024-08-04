@@ -1,11 +1,16 @@
 # RPI Runner for Autosink Project
 
 <table>
+<thead align="center">
+  <tr>
+    <th>자동으로 물이 켜짐</th>
+    <th>자동으로 물이 꺼짐</th>
+  </tr>
 </thead>
 <tbody align="center">
   <tr>
-    <td><img width="350" src=""></td>
-    <td><img src=""></td>
+    <td><img src="https://github.com/slink-to-unlock/.github/blob/main/demo-automatic-turn-on.gif?raw=true"></td>
+    <td><img src="https://github.com/slink-to-unlock/.github/blob/main/demo-automatic-turn-off.gif?raw=true"></td>
   </tr>
 </tbody>
 </table>
@@ -130,6 +135,8 @@ python3 -m snailshell.main \
 
 ### 런타임 사용법
 
+![ex](https://github.com/slink-to-unlock/.github/blob/main/demo-user-feedback-example.gif?raw=true)
+
 이 프로그램은 설거지 과정에서 사용자의 행동을 모니터링하고 피드백을 수집하기 위해 다음과 같은 키 입력을 받습니다.
 
 - `0` 키: 사용자가 수도꼭지를 닫았음을 나타냅니다.
@@ -138,10 +145,7 @@ python3 -m snailshell.main \
 
 이 키들은 자석 센서의 역할을 대신합니다. 자석 센서를 수도꼭지에 직접 부착하여 개폐 상태를 감지하고자 하였으나 현실적인 어려움으로 인해 키 입력으로 대체합니다. `q` 키를 입력하면 프로그램을 종료합니다. 이때 키 입력은 opencv 를 통해 이루어지므로, `--visualize` 옵션이 켜져 있어야 합니다.
 
-<aside>
-🖼️ 이 부분에 이미지 들어가면 좋으려나?
 
-</aside>
 
 사용 예시:
 
